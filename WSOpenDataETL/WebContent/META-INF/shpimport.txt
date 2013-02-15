@@ -1,5 +1,0 @@
-shp2pgsql -cDI -s 4326 {path} {name} > {name}.sql
-iconv -f CP1252 -t UTF8 {name}.sql > {name}_UTF8.sql
-psql -d {db_name} -U {db_user} < {name}_UTF8.sql
-rm {name}.sql
-rm {name}_UTF8.sql

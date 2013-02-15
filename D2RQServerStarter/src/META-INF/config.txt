@@ -1,9 +1,0 @@
-ttlFile	server_mapping.ttl
-serialField	do_serialuid
-prefixForTableWithoutPK	view_
-jdbcStrConnection	{database url}
-dbUser	{database username}
-dbPassword	{database password}
-serverBaseURI	http://localhost:2020/
-port	2020
-verboseAndDebug	false

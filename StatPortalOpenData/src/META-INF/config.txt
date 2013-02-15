@@ -1,3 +1,0 @@
-url	{url}
-unitName	StatPortalUnitName
-logConfigFile	{log config file path}
