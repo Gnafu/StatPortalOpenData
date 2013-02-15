@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>STRestExtensions</name>
+	<comment>NO_M2ECLIPSE_SUPPORT: Project files created with the maven-eclipse-plugin are not supported in M2Eclipse.</comment>
+	<projects>
+		<project>main</project>
+		<project>ows</project>
+		<project>platform</project>
+		<project>rest</project>
+		<project>restconfig</project>
+		<project>wcs</project>
+		<project>wfs</project>
+		<project>wms</project>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	<variableList>
+		<variable>
+			<name>STRestExtensionsResources</name>
+			<value>file:/E:/Progetti/StatPortal%20OpenData/Eclipse-Workspace-Geoserver_2.1.x/geoserver-extensions/rest/STRestExtensions/src/main/java/it/sister/extension/STRestExtensionsResources.properties</value>
+		</variable>
+	</variableList>
+</projectDescription>
