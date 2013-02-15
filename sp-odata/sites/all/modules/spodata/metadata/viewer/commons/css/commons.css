@@ -1,0 +1,25 @@
+.infoForUser{
+	border: 1px solid gray !important;
+	background-color: #F2F5F7;
+	background-position: 8px 8px;
+	background-repeat: no-repeat;
+	padding: 10px 10px 10px 50px;
+	margin: 8px;
+}
+
+.info-background{
+	background-image: url(../../../../../../../../misc/message-24-info.png);
+}
+
+.error-background{
+	background-image: url(../../../../../../../../misc/message-24-error.png);
+	background-color: rgb(255, 219, 219) !important;
+}
+
+.warning-background{
+	background-image: url(../../../../../../../../misc/message-24-warning.png);
+}
+
+.displayNone{
+	display: none;
+}

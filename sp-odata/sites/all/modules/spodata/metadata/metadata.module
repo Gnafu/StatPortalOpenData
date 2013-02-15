@@ -1,0 +1,3271 @@
+<?php
+/**
+ * @file
+ * Module file for Metadata module.
+ *
+ *
+ */
+include_once 'metadata.config.inc';
+include_once 'helper/federation.helper.inc';
+include_once 'blocks/metadata_blocks.inc';
+
+/**
+ * Implementation of hook_menu().
+ * 
+ * This hook implementation add metadata items menu to drupal menu system.
+ * 
+ * @return array menu items array
+ * @see hook_menu
+ */
+function metadata_menu() {
+
+	// catalog menu item
+	$items['catalog'] = array (
+			'title' => t('Esplora dati'),
+			'page callback' => 'metadata_catalog',
+			'title callback' => FALSE,
+			'page_arguments' => array( 0, 1, 2 ),
+			'access callback' => TRUE,
+			'type' => MENU_NORMAL_ITEM,
+			'menu_name' => 'main-menu',
+			'file' => 'menu_callback/mddata_catalog.php',
+			'weight' => 10,
+	);
+	// user catalog menu item
+	$items['my_odata'] = array (
+			'title' => t('Catalogo personale'),
+			'page callback' => 'metadata_personal_catalog',
+			'page_arguments' => array( 0 ),
+			'access callback' => 'user_is_logged_in',
+			'type' => MENU_NORMAL_ITEM,
+			'file' => 'menu_callback/mddata_catalog.php',
+	);
+	// administrator catalog management menu item
+	$items['metadata_catalog_management'] = array (
+			'title' => t('Gestione schede dati'),
+			'page callback' => 'metadata_catalog_management',
+			'page_arguments' => array( 0 ),
+			'access callback' => 'user_is_logged_in',
+			'type' => MENU_NORMAL_ITEM,
+			'file' => 'menu_callback/mddata_catalog.php',
+			'menu_name' => 'metadata_admin_menu',
+	);
+	// A menu callback is required when using ajax outside of the Form API.
+	$items['ajax_catalog_link_callback'] = array(
+			'page callback' => 'ajax_metadata_advanced_search',
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+			'type' => MENU_CALLBACK,
+			'file' => 'metadata.ajax.callback.inc',
+	);
+	// A menu callback is required when using ajax outside of the Form API.
+	$items['metadata_download_page'] = array(
+			'page callback' => 'metadata_download_page',
+			'page_arguments' => array( 0, 1, 2 ),
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+			'file' => 'menu_callback/mddata_attachment_download.php',
+			'type' => MENU_CALLBACK,			
+	);
+	// A menu callback is required when using ajax outside of the Form API.
+	$items['ajax_catalog_term_updater'] = array(
+			'page callback' => 'ajax_catalog_term_updater',
+			'access callback' => 'user_access',
+			'access arguments' => array('access content'),
+			'type' => MENU_CALLBACK,
+			'file' => 'metadata.ajax.callback.inc',
+	);
+	// A menu callback is required when using ajax outside of the Form API.
+	$items['ajax_metadata_adm_task'] = array(
+			'page callback' => 'ajax_metadata_adm_task',
+			'access callback' => 'user_access',
+			'access arguments' => array('administrator'),
+			'type' => MENU_CALLBACK,
+			'file' => 'metadata.ajax.callback.inc',
+	);
+	// download attach
+	$items['download_data'] = array (
+			'page callback' => 'download_metadata_attachment',
+			'page_arguments' => array( 0, 1 ),
+			'access callback' => TRUE,
+			'type' => MENU_CALLBACK,
+	);
+	// check services page
+	$items['odata_services_check'] = array (
+			'title' => t('Verifica servizi OData'),
+			'page callback' => 'metadata_check_services',
+			//'page_arguments' => array( 0 ),
+			'access callback' => 'user_is_logged_in',
+			'type' => MENU_NORMAL_ITEM,
+			'file' => 'menu_callback/check_services.php',
+			'menu_name' => 'metadata_admin_menu',
+	);
+	// check services page
+	$items['opendata_list'] = array (
+			'title' => t('Elenco completo degli open data catalogati'),
+			'page callback' => 'metadata_opendata_list',
+			'access callback' => true,
+			'type' => MENU_NORMAL_ITEM,
+			'file' => 'menu_callback/opendata_list.php',
+			'menu_name' => 'metadata_admin_menu',
+	);
+	// check services page
+	$items['sitemap'] = array (
+			'title' => t('Sitemap'),
+			'page callback' => 'metadata_sitemap',
+			'type' => MENU_NORMAL_ITEM,
+			'file' => 'menu_callback/custom_sitemap.php',
+			'menu_name' => 'main-menu',
+			'access callback' => true,
+	);
+	// user catalog menu item
+	$items['edit_authors'] = array (
+			'title' => t('Gestione Fonti'),
+			'page callback' => 'metadata_edit_authors',
+			'page_arguments' => array( ),
+			'access callback' => 'user_access',
+			'access arguments' => array('administrator'),
+			'type' => MENU_NORMAL_ITEM,
+			'file' => 'menu_callback/authors_handler.php',
+			'menu_name' => 'navigation',
+	);
+	// check services page
+	$items['federated_download'] = array (
+			'title' => t('Download'),
+			'page callback' => 'metadata_federated_download',
+			'type' => MENU_CALLBACK,
+			'file' => 'menu_callback/federated_download.php',
+			'access callback' => true,
+	);
+	/*
+	Aggiunge un tab a tutti i nodi
+	$items['node/%node/cccc'] = array(
+			'title' => 'Viewer',
+			'page callback' => 'devel_load_object',
+			'page arguments' => array('node', 1),
+			'access arguments' => array('access devel information'),
+			'type' => MENU_LOCAL_TASK,
+			'file' => 'devel.pages.inc',
+			'weight' => 20,
+	);*/
+
+	return $items;
+}
+
+/**
+ * hook_menu_alter implementation.
+ * Override taxonomy/term/% theme
+ * 
+ * @param array $items
+ */
+function metadata_menu_alter(&$items) {
+	if (!empty($items['taxonomy/term/%taxonomy_term'])) {
+		$items['taxonomy/term/%taxonomy_term']['page callback'] = 'metadata_page_term_page';
+	}
+	if (!empty($items['taxonomy/term/%taxonomy_term/%page'])) {
+		$items['taxonomy/term/%taxonomy_term/%page']['page callback'] = 'metadata_page_term_page';
+	}
+}
+
+/**
+ * Taxonomy term redirection to catalog.
+ * 
+ * @param object $term term object
+ */
+function metadata_page_term_page($term, $page=NULL) {
+	// 	@todo Not execute redirection if term vocabulary is not used by metadata module.
+	// redirect request to catalog
+	$alias = drupal_get_path_alias("catalog//term=" . $term->tid);
+	$query = array( );
+	if(isset($page)) {
+		$query['page'] = $page;
+	}
+	drupal_goto($alias, array('alias'=>true, 'query' => array( 'page'=>$page )), 301);
+}
+
+/**
+ * hook_theme implementation.
+ * Register all themes used by this module.
+ *
+ * @param array existing: An array of existing implementations that may
+ *        be used for override purposes. This is primarily useful for themes
+ *        that may wish to examine existing implementations to extract data
+ *        (such as arguments) so that it may properly register its own, higher
+ *         priority implementations.
+ * @param $type Whether a theme, module, etc. is being processed. This is primarily
+ *        useful so that themes tell if they are the actual theme being called or a parent theme.
+ *        May be one of:
+ *				- 'module': A module is being checked for theme implementations.
+ *				- 'base_theme_engine': A theme engine is being checked for a theme that is a parent of the actual theme being used.
+ *				- 'theme_engine': A theme engine is being checked for the actual theme being used.
+ *				- 'base_theme': A base theme is being checked for theme implementations.
+ *				- 'theme': The actual theme in use is being checked.
+ *
+ * @param $theme The actual name of theme, module, etc. that is being being processed.
+ *
+ * @param $path The directory path of the theme or module, so that it doesn't need to be looked up.
+ *
+ * @return array theme items array.
+ * @see hook_theme
+ **/
+function metadata_theme($existing=NULL, $type=NULL, $theme=NULL, $path=NULL) {
+	// return module theme config
+	return array(
+			'catalog' => array(
+					'template' => 'catalog',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+					'variables' => array('rows' => array()),
+			),
+			'personal_catalog' => array(
+					'template' => 'catalog',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+					'variables' => array('rows' => array()),
+			),
+
+			'metadata' => array(
+					'template' => 'metadata',
+					'variables' => array(),
+					'preprocess functions' => '',
+			),
+				
+			'metadata_search_result' => array(
+					'variables' => array('result' => NULL, 'module' => NULL),
+					'file' => 'metadatasearch.pages.inc',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+					'template' => 'metadata-search-result',
+			),
+			'metadata_search_results' => array(
+					'variables' => array('results' => NULL, 'module' => NULL, 'page_count' => -1, 'match_count' => -1, 'page_order_type' => 0, 'current_page' => 0),
+					'file' => 'metadatasearch.pages.inc',
+					'template' => 'metadata-search-results',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+			),
+			'metadata_tree_filter' => array(
+					'variables' => array(),
+					'template' => 'metadata_tree_filter',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+			),
+			'metadata_hierarchical_terms' => array(
+					'variables' => array( 'terms' => array(), 'vocabulary' => NULL ),
+					'file' => 'metadata_hierarchical_terms.tpl.php',
+					'template' => 'metadata_hierarchical_terms',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+					),
+			'metadata-search-taxonomy-term' => array (
+					'variables' => array( 'terms' => array(), 'vocabulary' => NULL ),
+					'file' => 'metadata-search-taxonomy-term.tpl.php',
+					'template' => 'metadata-search-taxonomy-term',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+					),
+			'metadata-search-type' => array (
+					'variables' => array( 'terms' => array(), 'vocabulary' => NULL ),
+					'file' => 'metadata-search-type.tpl.php',
+					'template' => 'metadata-search-type',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+			),
+			'metadata_statistics_block' => array(
+					'variables' => array( 'last_update' => NULL, 'most_active' => NULL, 
+									'most_voted' => NULL, 'most_viewed' => NULL,	
+									'most_searched' => NULL,	'most_downloaded' => NULL, 
+									'custom_title'),
+					'file' => 'metadata_statistics_block.tpl.php',
+					'template' => 'metadata_statistics_block',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+			),
+			'metadata_catalog_shortcut_block' => array(
+					'file' => 'metadata_catalog_shortcut_block.tpl.php',
+					'template' => 'metadata_catalog_shortcut_block',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+			),
+			
+			'metadata_footer_block' => array( 
+					'file' => 'metadata_footer_block.tpl.php',
+					'template' => 'metadata_footer_block',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+			),
+			'metadata_check_services' => array(
+					'file' => 'metadata_check_services.tpl.php',
+					'template' => 'metadata_check_services',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+					'variables' => array( 'results' => NULL ),
+			),
+			'metadata_catalog_management' => array(
+					'file' => 'metadata_catalog_management.tpl.php',
+					'template' => 'metadata_catalog_management',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+					'variables' => array( 'results' => NULL ),
+			),
+			'metadata_user_profile_items' => array(
+					'file' => 'metadata_user_profile_items.tpl.php',
+					'template' => 'metadata_user_profile_items',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+					'variables' => array( 'activity' => NULL, 'account' => NULL ),
+					'preprocess functions' => 'template_preprocess_metadata_user_profile_items',
+			),
+			'metadata_download' => array(
+					'file' => 'metadata_download.tpl.php',
+					'template' => 'metadata_download',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+					'variables' => array( 'fid' => -1, 'file_format' => 'CSV', 'node' => NULL ),
+			),
+			'metadata_news_scroller_block' => array(
+					'file' => 'metadata_news_scroller_block.tpl.php',
+					'template' => 'metadata_news_scroller_block',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+			),
+			'metadata_odata_list' => array(
+					'file' => 'metadata_odata_list.tpl.php',
+					'template' => 'metadata_odata_list',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+					'variables' => array( 'rows' => array(), 'active_taxonomies'=> array(), 'active_authors'=>array() ),
+			),
+			'metadata_edit_authors' => array(
+					'file' => 'metadata_edit_authors.tpl.php',
+					'template' => 'metadata_edit_authors',
+					'path' => drupal_get_path('module', MODULE) . '/theme',
+					'variables' => array( 'rows' => array(), 'form'=> array(), 'form_delete' => array()),
+			),
+	);
+}
+
+/**
+ * Implements hook_node_info() 
+ * Register new metadata content type to drupal content system.
+ * @return array An array of information defining the module's node types.
+ * @see hook_node_info http://api.drupal.org/api/drupal/modules!node!node.api.php/function/hook_node_info/7
+ */
+function metadata_node_info() {
+	return array(
+			'metadata' => array(
+					'name' => t('Metadata'),
+					'base' => MODULE,
+					'description' => t('Use this content type to add a metadata.'),
+					'has_title' => TRUE,
+					'title_label' => t('Metadata Title'),
+			),
+	);
+}
+
+/**
+ * hook_entity_info_alter implementation.
+ *
+ * Add view mode item to metadata node
+ *
+ * @param array (reference) $entity_info The entity info array, keyed by entity name
+ * @see hook_entity_info_alter
+ */
+function metadata_entity_info_alter(&$entity_info) {
+	// add a new view_mode to metadata node
+	$entity_info['node']['view modes']['catalog'] = array(
+			'label' => t('Catalog'),
+			'custom settings' => TRUE,
+	);
+}
+
+/**
+ * Implement hook_form_alter() with the standard default form (Not used).
+ * @param array $form Nested array of form elements that comprise the form.
+ * @param array $form_state A keyed array containing the current state of the form. 
+ * 			The arguments that drupal_get_form() was originally called with are available in the 
+ * 			array $form_state['build_info']['args'].
+ * @param string $form_id String representing the name of the form itself. Typically this is the name of 
+ * 			the function that generated the form.
+ * @return array updated form nested array.
+ * @see hook_form_alter
+ */
+function metadata_form_alter(&$form, $form_state, $form_id) {
+	
+	if($form_id==='metadata_node_form') {
+		$form['metadata_category']['und']['#title'] = t('Tematica');
+		$form['metadata_category']['und']['#description'] = t('Seleziona l\'area tematica');
+
+		$form['metadata_format']['#prefix'] = '<div style="display: none">';
+		$form['metadata_format']['#suffix'] = '</div>';
+		$form['metadata_format']['und']['#title'] = t('Formato');
+		$form['metadata_format']['und']['#description'] = t('Seleziona il formato da associare alla nuova scheda');
+		$term = taxonomy_get_term_by_name(variable_get('metadata_format_data', 'Dati'));
+		if(@isset($form['metadata_format']['und']['#default_value']) && empty($form['metadata_format']['und']['#default_value'])) {
+			$tid = array();
+			foreach ($term as $key => $value) {
+				if($value->vocabulary_machine_name==='metadata_lu_format')
+					$tid[$key] = $value->tid;
+			}
+			
+			$form['metadata_format']['und']['#default_value'] = isset($tid) ? $tid : '';
+		}
+
+		$form['metadata_license']['und']['#title'] = t('Licenza');
+		$form['metadata_license']['und']['#description'] = t('Seleziona la licenza con cui i dati verranno distribuiti');
+
+		$form['metadata_type']['und']['#title'] = t('Parole chiave');
+		$form['metadata_type']['und']['#description'] = t('Imposta i tag');
+
+		// hide actions on add
+			$form['actions']['#prefix'] = '<div style="display: none">';
+			$form['actions']['#suffix'] = '</div>';
+		
+		// hide language selector
+		if(isset($form['language'])) {
+			$form['language']['#prefix'] = '<div style="display: none">';
+			$form['language']['#suffix'] = '</div>';
+		}
+		
+		if(isset($form['metadata_datasources'])) {
+			if(!user_access('administrator')) {
+				$form['metadata_datasources']['#prefix'] = '<div style="display: none">';
+				$form['metadata_datasources']['#suffix'] = '</div>';
+			}
+		}
+	}
+	if($form_id=='node_delete_confirm') {
+		$module_path = drupal_get_path('module', 'metadata');
+		
+		$form['#node']->__action = 'delete';
+	}
+	
+	
+	
+}
+
+/**
+ * Implements hook_node_prepare.
+ * Called before hook_form (edit).
+ * 
+ * @param array $node The node that is about to be shown on the add/edit form
+ * @see hook_node_prepare
+ */
+function metadata_node_prepare($node) {
+	
+	// is editing?
+	if(isset($node->nid)) {
+		// load attachment
+		$tbl_attach = new TableAttach();
+		$node->attachments = $tbl_attach->getExtendedMDAttach($node->nid);
+		
+		// init enabled viewer
+		if(!isset($node->hasGrid)) {
+			// true for all node that has an attachment with type data
+			$node->hasGrid = $tbl_attach->nodeHasDataAttach();
+			// true for all node has format 'geografici'
+			$node->hasMap2D = $tbl_attach->isGeographic($node);
+			// true for all node has format 'geografici' and has attachment type Raw
+			$node->hasMap3D = $node->hasMap2D && $tbl_attach->nodeHasRawAttach();
+			// true for all node has format 'geografici' and has attachment type structured
+			$node->hasGraph = $tbl_attach->nodeHasStructuredAttach();
+		}
+		
+		// set metadata baseType: 0==Application
+		if($node->hasGrid || $node->hasMap2D || $node->hasMap3D || $node->hasGraph) {
+			$node->baseType = 0;
+			
+			$node->isStructured = (bool)$tbl_attach->nodeHasStructuredAttach();
+			$node->isRaw = !$node->isStructured;
+			
+			$node->isGeographic = $tbl_attach->isGeographic($node);
+			$node->isAlphanumeric = true; // all md data are alphanumeric 
+		}
+		// TODO: editing gestire altri tipologie
+		else {
+			$node->isStructured = $node->isRaw = $node->isGeographic = $node->isAlphanumeric = false;
+		}
+	}
+}
+
+/**
+ * Implement hook_form() with the standard default form.
+ * Add item to metadata creation/editing form.
+ * 
+ * @param object $node The node being added or edited.
+ * @param array $form_state The form state array
+ * @return array An array containing the title and any custom form elements to be displayed in the node editing form.
+ * 
+ * @see hook_form
+ */
+function metadata_form($node, $form_state) {
+
+	$module_path = drupal_get_path('module', 'metadata');
+	$form['#attached']['js'] = array(
+			$module_path . '/js/jquery-ui.min.js',
+			$module_path . '/js/upd.metadata.js',
+	);
+	/// FILE ATTACH HANDLER
+	$form['attached_files'] = array(
+			'#type' => 'plupload',
+			'#title' => t('Gestione file allegati'),
+			'#description' => t('Per includere degli allegati alla scheda, aggiungi tutti i file alla coda e avvia l\'upload. ') . 
+				t('Puoi eliminare un allegato caricato precedentemente utilizzando il pulsante rimuovi nell\'area ').'<strong>'.t('Allegati gi&agrave; caricati').'</strong>',
+			'#suffix' => '<div class="current-attaches-container"><label>'.t('Allegati gi&agrave; caricati').'</label><ol class="current-attaches"></ol></div>',
+	);
+	
+	$form['deleted_attached_files'] = array(
+		'#type' => 'hidden',
+		'#default_value' => '',
+	);
+	
+	$current_att = array();
+	if(isset($node->attachments)) {
+		foreach ($node->attachments as $a) {
+			if($a->id_attach_type==TableAttach::TYPE_REPORT) {
+				$f = file_load($a->fid);
+				$__temp = new stdClass();
+				$__temp->fid = $a->id;
+				$__temp->url = file_create_url($f->uri);
+				$__temp->name = $f->filename;
+				$__temp->id = $a->id;
+				$current_att[] = $__temp;
+			}
+		}
+	}
+	
+	$form['current_attached_files'] = array(
+			'#type' => 'hidden',
+			'#default_value' => json_encode($current_att),
+	);
+	
+	/// TITLE
+	$form['title'] = array(
+			'#title' => t('Title'),
+			'#type' => 'textfield',
+			'#description' => t('Inserisci il titolo della scheda.'),
+			'#collapsible' => TRUE,
+			'#collapsed' => FALSE,
+			'#weight' => -101,
+			'#required' => TRUE,
+			'#default_value' => is_null($node->title) ? '' : $node->title,
+			'#attached' => array(
+					'js' => array(
+							$module_path . '/js/jquery-ui.min.js',
+							$module_path . '/js/upd.metadata.js',
+					),
+			),
+	);
+
+	$tbl_metadata = new TableMetadata();
+	// create or edit?
+	if(isset($node->nid))
+		$row_metadata = $tbl_metadata->bind($node->nid);
+	else
+		$row_metadata = new stdClass();
+
+	$authors = MetadataHelper::getAuthors(true);
+	$tmp__authors = '';
+	$selected_authors = isset($row_metadata->id_author) && isset($authors[$row_metadata->id_author]) ? $authors[$row_metadata->id_author] : '';
+	$first = true;
+	foreach ($authors as $key => $value) {
+		if(!$first)
+			$tmp__authors .= ', ';
+		else
+			$first = false;
+		
+		$tmp__authors .= "{ label: \"$value\", aid: $key}";
+	}
+	
+	$author_js_obj = "StatPortalOpenData = StatPortalOpenData || {}; StatPortalOpenData.authors = [$tmp__authors];";
+	$form['author_name'] = array(
+			'#type' => 'textfield',
+			'#title' => t('Fonte'),
+			'#description' => 'Inserisci il nome della nuova fonte del dato.',
+			'#weight' => 2,
+			'#id' => 'ui-autocomplete-author',
+			'#default_value' => $selected_authors,
+			'#required' => true,
+			'#attached' => array(
+					'js' => array( 
+						$author_js_obj => array('type' => 'inline')
+					),
+					'css' => array(
+						".ui-autocomplete {
+					        max-height: 100px;
+					        overflow-y: auto;
+					        /* prevent horizontal scrollbar */
+					        overflow-x: hidden;
+					    }
+					    /* IE 6 doesn't support max-height
+					     * we use height instead, but this forces the menu to always be this tall
+					     */
+					    * html .ui-autocomplete {
+					        height: 100px;
+					    }
+						#ui-autocomplete-author {
+							width: 300px;
+						}" => array('type' => 'inline')
+					),
+			),
+	);
+	
+	$form['metadata_author'] = array(
+			'#type' => 'hidden',
+			'#default_value' => !isset($row_metadata->id_author) ? -1 : $row_metadata->id_author,
+			'#attributes' => array ( 'id' => 'author-id'),
+			'#weight' => 2,
+	);
+
+	/// DATA SOURCE RELATION
+	$default_rel = "";
+	$source_rel = array();
+	if(isset($node->nid))
+	{
+		$tbl_relation = new TableRelation();
+		$relation = $tbl_relation->getMDRelations($node->nid);
+		
+		// fetch relation
+		foreach ($relation as $rel) {
+			
+			if((bool)$rel->data_source) {
+				// data source link
+				$_link = new stdClass();
+				$_link->label = $rel->label;
+				$_link->url = $rel->url;
+				$source_rel[] = $_link;
+			}
+			else {
+				// link
+				$default_rel .= $rel->label . ':::' . $rel->url . '##END##';
+			}
+		}
+	}
+	
+	$form['relation_fieldset'] = array(
+			'#type' => 'fieldset',
+			'#title' => t('Altri link'),
+			'#weight' => 20,
+			'#collapsible' => TRUE,
+			'#collapsed' => FALSE,
+	);
+	
+	/// DATA SOURCE RELATION
+	$form['datasource_relation_fieldset'] = array(
+			'#type' => 'fieldset',
+			'#title' => t('Link al file o alla pagina per il download del dato di origine'),
+			'#weight' => 19,
+			'#collapsible' => TRUE,
+			'#collapsed' => FALSE,
+	);
+	
+	$form['datasource_relation_fieldset']['ds_link'] = array(
+			'#title' => t('Link'),
+			'#type' => 'textfield',
+			'#description' => t('Inserisci il link da cui &egrave; stato rilasciato il dato originale '),
+			'#collapsible' => TRUE,
+			'#collapsed' => FALSE,
+			'#weight' => 1,
+			'#required' => FALSE,
+			'#maxlength' => 500,
+			'#default_value' => (count($source_rel)>=1 ? $source_rel[0]->url : '' ),
+	);
+	
+	$form['datasource_relation_fieldset']['ds_label'] = array(
+			'#title' => t('Etichetta'),
+			'#type' => 'textfield',
+			'#description' => t('L\'etichetta del link da visualizzare'),
+			'#collapsible' => TRUE,
+			'#collapsed' => FALSE,
+			'#weight' => 0,
+			'#required' => FALSE,
+			'#default_value' => (count($source_rel)>=1 ? $source_rel[0]->label : t('Download del dato originale') ),
+			'#maxlength' => 500,
+			'#prefix' => '<div style="display: none;">',
+			'#suffix' => '</div>',
+	);
+	
+	/// RELATION
+	$form['relation_fieldset']['link'] = array(
+			'#title' => t('Link'),
+			'#type' => 'textfield',
+			'#description' => t('Inserisci il link e fai click su aggiungi per aggiungere un nuovo link alla scheda.'),
+			'#collapsible' => TRUE,
+			'#collapsed' => FALSE,
+			'#weight' => 1,
+			'#required' => FALSE,
+			'#maxlength' => 500,
+	);
+	
+	$form['relation_fieldset']['relation'] = array(
+			'#type' => 'hidden',
+			'#collapsible' => TRUE,
+			'#collapsed' => FALSE,
+			'#weight' => 0,
+			'#required' => FALSE,
+			'#default_value' => $default_rel,
+			'#attributes' => array( 'id' => 'relation'),
+	);
+	
+	$form['relation_fieldset']['label'] = array(
+			'#title' => t('Etichetta'),
+			'#type' => 'textfield',
+			'#description' => t('Inserisci un\'etichetta da visualizzare per il link da inserire nella scheda.'),
+			'#collapsible' => TRUE,
+			'#collapsed' => FALSE,
+			'#weight' => 0,
+			'#required' => FALSE,
+			//'#default_value' => $default_rel,
+			'#maxlength' => 500,
+			'#prefix' => '<div class="description" style="display: block;">' . t('Puoi aggiungere uno o pi&uacute; link alla scheda. Per aggiungerli compila i campi seguenti e fai click su "aggiungi". ') . '</div>'
+	);
+	
+	$form['relation_fieldset']['add_relation'] = array(
+			'#type' => 'button',
+			'#value' => t('Aggiungi'),
+			'#weight' => 10,
+			'#attributes' => array(
+						'id' => 'bt-add-relation'
+					),
+			);
+
+	$form['relation_fieldset']['links'] = array(
+			'#type' => 'container',
+			'#weight' => 15,
+			'#attributes' => array(
+						'id' => 'links-container',
+					),
+			);
+	
+	$form['application'] = array(
+			'#prefix' => '<div style="display: none">',
+			'#type' => 'fieldset',
+			'#title' => t('Applicazioni'),
+			'#weight' => 16,
+			'#collapsible' => TRUE,
+			'#collapsed' => FALSE,
+			'#attributes' => array(
+					'id' => 'app-container',
+			),
+			'#suffix' => '</div>',
+	);
+	
+	$form['application']['app-name'] = array(
+			'#title' => t('Nome applicazione'),
+			'#type' => 'textfield',
+			'#description' => t('Il nome dell\'applicazione'),
+			'#collapsible' => TRUE,
+			'#weight' => 0,
+			'#required' => FALSE,
+			'#maxlength' => 200,
+	);
+	
+	$form['application']['app-description'] = array(
+			'#title' => t('Descrizione applicazione'),
+			'#type' => 'textfield',
+			'#description' => t('La descrizione dell\'applicazione'),
+			'#collapsible' => TRUE,
+			'#weight' => 0,
+			'#required' => FALSE,
+			'#maxlength' => 200,
+	);
+	
+	$form['application']['app-web'] = array(
+			'#title' => t('Sito web'),
+			'#type' => 'textfield',
+			'#description' => t('Link all\'applicazione'),
+			'#collapsible' => TRUE,
+			'#weight' => 0,
+			'#required' => FALSE,
+			'#maxlength' => 200,
+	);
+	
+	$form['application']['app-format'] = array(
+			'#title' => t('Tipologia'),
+			'#type' => 'textfield',
+			'#description' => t('Tipo applicazione'),
+			'#weight' => 0,
+			'#required' => FALSE,
+			'#maxlength' => 200,
+	);
+
+	$form['attachment'] = array(
+			'#prefix' => '<div style="display:none">',
+			'#type' => 'fieldset',
+			'#title' => t('Allegati'),
+			'#weight' => 16,
+			'#collapsible' => TRUE,
+			'#collapsed' => FALSE,
+			'#attributes' => array(
+					'id' => 'attach-container',
+			),
+			'#suffix' => '</div>',
+	);
+	
+	// metadata edit support: enabled viewer.
+	$viewer_default = array();
+	if(isset($node->hasGrid) && $node->hasGrid)
+		$viewer_default[] = 'hasGrid';
+	if(isset($node->hasMap2D) && $node->hasMap2D)
+		$viewer_default[] = 'has2DMap';
+	if(isset($node->hasMap3D) && $node->hasMap3D)
+		$viewer_default[] = 'has3DMap';
+	if(isset($node->hasGraph) && $node->hasGraph)
+		$viewer_default[] = 'hasChart';
+	
+	$form['viewer'] = array(
+			'#prefix' => '<div style="display:none">',
+			'#weight' => 0,
+			'#type' => 'checkboxes',
+			'#options' => array( 
+					'hasGrid' => t('Tabellare'), 
+					'has2DMap' => t('Mappa 2d'),
+					'has3DMap' => t('Mappa 3d'),
+					'hasChart' => t('Grafici'),
+					),
+			'#title' => t('Visualizzatori abilitati'),
+			'#default_value' => $viewer_default,
+			'#tree' => false,
+			'#suffix' => '</div>',
+	);
+	
+
+	
+	$active = array(0 => t('Carica un dato'), 1 => t('Segnala un\'applicazione'));
+	$description0 = t('Permette di caricare e associare un dato strutturato/raw tramite 
+						un wizard ETL e/o di caricare allegati');
+	$description1 = t('Seleziona questa tipologia se la nuova scheda descrive un\'applicazione/tool inerente all\'Open Data (es.: visualizzatori di dati, elaborazione dati, ...).');
+	
+	$basetype_default = isset($node->baseType) ? $node->baseType : MetadataValidator::BASETYPE_DATA; 
+	$form['basetype'] = array(
+			'#type' => 'radios',
+			'#title' => t('Tipo allegati'),
+			'#default_value' => $basetype_default,
+			'#options' => $active,
+			'#description' => t('Determina il formato finale della scheda.'),
+			'#prefix' => "<div class='basetype-container' style='display: none;'>",
+			'#suffix' => "<div class='basetype-description'>
+					<div id='basetype-0'>$description0</div>
+					<div id='basetype-1' style='display: none;'>$description1</div></div></div>",
+			'#weight' => 4,
+	);
+	
+	/// NOTE
+	$form['note'] = array(
+			'#title' => t('Note'),
+			'#type' => 'textarea',
+			'#description' => t('Aggiungi delle note alla descrizione del dato.'),
+			'#collapsible' => TRUE,
+			'#collapsed' => FALSE,
+			'#weight' => 0,
+			'#required' => FALSE,
+			'#default_value' => !isset($node->note) ? '' : $node->note,
+	
+	);
+	
+	$form['md_data'] = array(
+			'#type' => 'container',
+			'#weight' => 0,
+			'#attributes' => array(
+						'id' => 'md-data-info',
+						'style' => 'display: none;'
+					),
+	);
+	
+	
+	$form['md_data']['fid'] = array(
+			'#type' => 'textfield',
+			'#title' => 'fid',
+			'#default_value' => -1,
+			'#attributes' => array(
+					'id' => 'odata-file-fid'
+			),	
+	);
+	
+	$form['md_data']['file_format'] = array(
+			'#type' => 'hidden',
+			'#title' => 'file_format',
+// 			'#default_value' => -1,
+			'#attributes' => array(
+					'id' => 'file-format'
+			),
+	);
+
+	$data_structure_default = '';
+	$odata_url_default = '';
+	// is md data editing with attachments 
+	if(isset($node->nid) && isset($node->attachments) && count($node->attachments)>0) {
+		$idx = array_keys($node->attachments);
+		// get oData url by first attachment
+		$odata_url_default = $node->attachments[$idx[0]]->type_info->url;
+		
+		$form['md_data']['old_odata_url'] = array(
+				'#type' => 'hidden',
+				'#default_value' => $odata_url_default,
+				'#title' => 'url',
+		);
+		
+		$form['md_data']['old_odata_attach_id'] = array(
+				'#type' => 'hidden',
+				'#default_value' => $node->attachments[$idx[0]]->id,
+				'#title' => 'url',
+		);
+		// set data_description
+		if(isset($node->attachments[$idx[0]]->data_description))
+			$data_structure_default = $node->attachments[$idx[0]]->data_description;
+	}
+	
+	
+	$form['md_data']['extra_note'] = array(
+			'#type' => 'hidden',
+			'#default_value' => $data_structure_default,
+			'#attributes' => array(
+					'id' => 'extra-notes'
+			),
+	);
+	
+	$form['md_data']['odata_url'] = array(
+			'#type' => 'textfield',
+			'#default_value' => $odata_url_default,
+			'#title' => 'url',
+	);
+	
+	
+	
+	$form['md_data']['md_is_geographic'] = array(
+			'#type' => 'checkbox',
+			'#title' => 'Dato geografico',
+			'#default_value' => isset($node->isGeographic) ? (int)$node->isGeographic : 0,
+	);
+	
+	$form['md_data']['md_is_alphanumeric'] = array(
+			'#type' => 'checkbox',
+			'#title' => 'Dato alfanumerico',
+			'#default_value' => isset($node->isAlphanumeric) ?  (int)$node->isAlphanumeric : 0,
+	);
+	
+	$form['md_data']['md_is_structured'] = array(
+			'#type' => 'checkbox',
+			'#title' => 'Dato strutturato',
+			'#default_value' => isset($node->isStructured) ? (int)$node->isStructured : 0,
+	);
+	
+	$form['md_data']['md_is_raw'] = array(
+			'#type' => 'checkbox',
+			'#title' => 'Data raw',
+			'#default_value' => isset($node->isRaw) ? (int)$node->isRaw : 0,
+	);
+		
+	return $form;
+}
+
+/**
+ * Compute user input validation of creation/edit form.
+ * hook_validate implementation.
+ * 
+ * @param array $node metadata node object.
+ * @param array $form Nested array of form elements that comprise the form
+ * @param array $form_state A keyed array containing the current state of the form.
+ * 
+ * @see hook_validate
+ */
+function metadata_validate($node, $form, $form_state)
+{
+	$validator = new MetadataValidator();
+
+	$validator->validate($node);
+}
+
+/**
+ * Implements hook_node_presave.
+ * Add specific taxonomy format term to node. 
+ * 
+ * @param object $node The node that is being inserted or updated..
+ * @see hook_node_presave
+ * 
+ */
+function metadata_node_presave($node) {
+	if($node->type!='metadata')
+		return;
+	
+	$parent_tid = -1;
+	$term = null;
+	// get vocabulary id
+	$vid = variable_get('metadata_lu_format', null);
+	$voc = taxonomy_vocabulary_load($vid);
+	$node_current_tid = array();
+	// scheda relativa ad un dato
+	if($node->md_is_structured || $node->md_is_raw) {
+		
+		foreach ($node->metadata_format['und'] as $key => $value) {
+			$node_current_tid[] = $value['tid'];
+		}
+		
+		// get tree root
+		$term_array = taxonomy_get_term_by_name(variable_get('metadata_format_data', 'Dato'), $voc->machine_name);
+		foreach ($term_array as $key => $term) {
+			if(!in_array($term->tid, $node_current_tid)) {
+				$node->metadata_format['und'][0] = array( 'tid' => $term->tid );
+			}
+		}
+		
+		if($node->md_is_alphanumeric) {
+			$term_array = taxonomy_get_term_by_name(variable_get('metadata_format_alphanumeric', 'Tabellare'), $voc->machine_name);
+			foreach ($term_array as $key => $term) {
+				if(!in_array($term->tid, $node_current_tid)) {
+					$node->metadata_format['und'][] = array( 'tid' => $term->tid );
+				}
+			}
+		}
+		
+		if($node->md_is_geographic) {
+			$term_array = taxonomy_get_term_by_name(variable_get('metadata_format_geographic', 'Cartografico'), $voc->machine_name);
+			foreach ($term_array as $key => $term) {
+				if(!in_array($term->tid, $node_current_tid)) {
+					$node->metadata_format['und'][] = array( 'tid' => $term->tid );
+				}
+			}
+			
+		}
+		// DO-1143
+		if(isset($node->file_format)) {
+			$term_array = taxonomy_get_term_by_name($node->file_format, $voc->machine_name);
+			if(count($term_array)>0) { 
+				foreach ($term_array as $key => $term) {
+					if(!in_array($term->tid, $node_current_tid)) {
+						$node->metadata_format['und'][] = array( 'tid' => $term->tid );
+					}
+				}
+				
+				$term_array = taxonomy_get_term_by_name(variable_get('metadata_fileformat_file', 'File'), $voc->machine_name);
+				foreach ($term_array as $key => $term) {
+					if(!in_array($term->tid, $node_current_tid)) {
+						$node->metadata_format['und'][] = array( 'tid' => $term->tid );
+					}
+				}
+			}
+		}
+	}
+//  @todo add application handling. 	
+// 	else if($node->md_is_application) {
+// 		$term = taxonomy_get_term_by_name(variable_get('metadata_format_file', 'Applicazione'), $voc->machine_name);
+// 		foreach ($term_array as $key => $term) {
+// 			$node->metadata_format['und'][] = array( 'tid' => $term->tid );
+// 		}
+// 	}
+	else {
+		$term_array = taxonomy_get_term_by_name(variable_get('metadata_format_file', 'File'), $voc->machine_name);
+		foreach ($term_array as $key => $term) {
+			if(!in_array($term->tid, $node_current_tid)) {
+				$node->metadata_format['und'][0] = array( 'tid' => $term->tid );
+			}
+		}
+	}
+
+}
+
+/**
+ * Act on a node after validated form values have been copied to it.
+ * This hook is intended for adjusting non-field-related properties.
+ * hook_node_submit implemantation.
+ * 
+ * @param object $node The node object being updated in response to a form submission.
+ * @param array $form The form being used to edit the node.
+ * @param array $form_state The form state array.
+ */
+function metadata_node_submit($node, $form, &$form_state) { 
+	if(isset($form_state['values']) && isset($form_state['values']['attached_files']))
+		$node->extra_attachments = $form_state['values']['attached_files']; 
+}
+/**
+ * Insert new metadata row for input node and create a url alias to this new metadata content type.
+ * hook_insert implementation.
+ * 
+ * @param array $node The node that is being created..
+ * @see hook_insert
+ */
+function metadata_insert($node)
+{
+	// insert metadata row
+	$tbl_metadata = new TableMetadata();
+	
+	try
+	{
+		$node->identifier = MetadataHelper::getMDIdentifier($node);
+		$tbl_metadata->insert($node);
+		
+		// SEO path creation
+		$path = array(
+				'source' => 'node/' . $node->nid,
+				'alias' => $node->identifier,
+		);
+
+		path_save($path);
+		
+		// add insert event.
+		_metadata_add_event(TableMetadataEvents::INSERT_EVTTYPE, $node->nid);
+		
+		// assigned action execution
+		$action = trigger_get_assigned_actions('metadata_insert');
+		if(count($action)) {
+			actions_do(key($action), $node, array());
+		}
+	}
+	catch (Exception $ex)
+	{
+		// log error on db
+		watchdog_exception('module', $ex);
+	}
+}
+
+/**
+ * Update existing metadata row related to input node.
+ * hook_update implementation
+ * 
+ * @param array $node The node that is being updated.
+ * @see hook_update
+ */
+function metadata_update($node)
+{
+	// update metadata row
+	$tbl_metadata = new TableMetadata();
+	
+	try
+	{
+		$tbl_metadata->update($node);
+		
+		// assigned action execution
+		$action = trigger_get_assigned_actions('metadata_update');
+		if(count($action)) {
+			actions_do(key($action), $node, array());
+		}
+	}
+	catch (Exception $ex)
+	{
+		watchdog_exception('module', $ex);
+	}
+}
+
+
+/**
+ * Delete existing metadata.
+ * hook_delete implementation
+ * 
+ * @param array $node The node that is being deleted.
+ * @see hook_delete
+ */
+function metadata_delete(&$node)
+{
+	try {
+		// 1. delete attach
+		$tbl_attach = new TableAttach();
+		$tbl_attach->delete($node);
+		
+		// 2. delete relation
+		$tbl_relation = new TableRelation();
+		$tbl_relation->delete($node->nid);
+	
+		// 3. delete metadata
+		$tbl_metadata = new TableMetadata();
+		$tbl_metadata->delete($node->nid);
+		
+		// 4 delete url alias.
+		path_delete(array('source' => 'node/' + $node->nid));
+		
+		_metadata_add_event(TableMetadataEvents::DELETE_EVTTYPE, $node->nid);
+		
+		// assigned action execution
+		$action = trigger_get_assigned_actions('metadata_delete');
+		if(count($action)) {
+			actions_do(key($action), $node, array());
+		}
+	}
+	catch (Exception $ex) {
+		watchdog_exception('module', $ex);
+	}
+}
+
+/**
+ * Load additiona metadata node info
+ * hook_load implementations.
+ * 
+ * @param $nodes array $nodes An array of the nodes being loaded, keyed by nid.
+ * @return array metadata nodes array.
+ * 
+ * @see hook_load
+ */
+function metadata_load($nodes) {
+	/// todo: add metadata additional info to node
+
+	$md_table = new TableMetadata();
+	
+	$tbl_md_attr = new TableMetadataAttributes();
+
+	foreach ($nodes as $node) {
+		// scorro i nodi e aggiungo le informazioni aggiuntive.
+		if($node->type===MODULE)
+		{
+			$md_row = $md_table->bind($node->nid);
+			
+			$node->id_author = $md_row->id_author;
+			$node->note = $md_row->note;
+			$node->author = TableAuthor::getAuthor($node->id_author);
+			$node->identifier = $md_row->identifier;
+			$node->md_status = $md_row->status;
+			$node->md_visibility = $md_row->visibility;
+			
+			
+			// get metadata attributes
+			$md_attr = $tbl_md_attr->getMDAttributes($node->nid);
+			if(count($md_attr)>0) {
+				$id_attr = array_keys($md_attr);
+				$id_attr = $id_attr[0];
+				
+				$node->hasGrid = (bool)$md_attr[$id_attr]->has_grid;
+				$node->hasMap2D = (bool)$md_attr[$id_attr]->has_2dmap;
+				$node->hasMap3D = (bool)$md_attr[$id_attr]->has_3dmap;
+				$node->hasGraph = (bool)$md_attr[$id_attr]->has_chart;
+			}
+		}
+	}
+	
+	return $nodes;
+}
+
+
+/**
+ * This hook is invoked during node viewing after the node is fully loaded, so that the node type module can 
+ * define a custom method for display, or add to the default display.
+ * Implement hook_view().
+ * 
+ * @param object $node The node to be displayed, as returned by metadata_load()
+ * @param string $view_mode View mode, e.g. 'full', 'teaser'
+ * 
+ * @return object Modified passed $node parameter.
+ * 
+ * @see hook_view
+ */
+function metadata_view($node, $view_mode) {
+	
+	// add metadata details to metadata node
+	if (strcmp($view_mode, 'full')==0)  {
+		$tbl_relation = new TableRelation();
+		$tbl_attach = new TableAttach();
+		$tbl_event = new TableMetadataEvents();
+		// get view count
+		$node->events_count = $tbl_event->getMetadataEventsCount($node->nid);
+		
+		$node->relation = $tbl_relation->getMDRelations($node->nid, 0);
+		$node->attachments = $tbl_attach->getExtendedMDAttach($node->nid, 0);
+		$node->ds_relation = $tbl_relation->getMDRelations($node->nid, 1);
+		
+		// se non è stato impostato provo a determinare i viewer abilitati utilizzando le tassonomie
+		if(!isset($node->hasGrid)) {
+			// true for all node that has an attachment with type data  
+			$node->hasGrid = $tbl_attach->nodeHasDataAttach();
+			// true for all node has format 'geografici' 
+			$node->hasMap2D = $tbl_attach->isGeographic($node);
+			// true for all node has format 'geografici' and has attachment type Raw
+			$node->hasMap3D = $node->hasMap2D && $tbl_attach->nodeHasRawAttach();
+			// true for all node has format 'geografici' and has attachment type structured		
+			$node->hasGraph = $tbl_attach->nodeHasStructuredAttach();
+		}
+		$categories = array();
+		if(isset($node->metadata_category['und'])) {
+			foreach ($node->metadata_category['und'] as $value) {
+				$categories[] = $value['tid'];
+			}
+		}
+		$types = array();
+		if(isset($node->metadata_type['und'])) {
+			foreach ($node->metadata_type['und'] as $value) {
+				$types[] = $value['tid'];
+			}
+		}
+ 		// get similar metadata
+ 		$helper = new MetadataSearchHelper();
+ 		$node->md_related = $helper->search();
+ 		
+ 		// fetch node attach
+ 		$attachment_ids = array_keys($node->attachments);
+ 		$node->data_attach_params = new DataAttach();
+ 		if(isset($attachment_ids) && count($attachment_ids)>0) {
+ 			foreach ($attachment_ids as $att_id) {
+ 				if(isset($node->attachments[$att_id]) &&
+ 						($node->attachments[$att_id]->id_attach_type == TableAttach::TYPE_DATA_MD || $node->attachments[$att_id]->id_attach_type == TableAttach::TYPE_DATA_RAW) ){
+ 					$attach_info = $node->attachments[$att_id];
+ 					if(isset($attach_info->type_info->odata_id)) {
+ 						$node->data_attach_params->odata_id = $attach_info->type_info->odata_id;
+ 						$node->data_attach_params->odata_url = $attach_info->type_info->url;
+ 						$node->data_attach_params->fid = $attach_info->fid;
+ 						$node->data_attach_params->file_format = $attach_info->file_format;
+ 					}
+ 					else if(isset($attach_info->type_info->error)) {
+ 						$node->data_attach_params->setErrorMessage($attach_info->type_info->error);
+ 					}
+ 				}
+ 			}
+ 		}
+ 		else {
+ 			$node->data_attach_params->setErrorMessage('Nessun dato allegato alla scheda');
+ 		}
+ 		
+  		$node->data_attach_params->loadMetadataViewer($node->hasGrid || $node->hasMap2D || $node->hasMap3D || $node->hasGraph, MetadataHelper::get_js_services());
+ 		$req_params = drupal_get_query_parameters();
+ 		if(isset($req_params['metadati']) && !$node->data_attach_params->error) {
+ 			if(!$node->data_attach_params->loadDataDescription())
+ 				$node->data_attach_params->setErrorMessage('Impossibile ritrovare le informazioni aggiuntive sul dato.');
+ 		}
+		
+ 		// set page header (meta-keywords/description, title, og:title, ...)
+ 		MetadataHelper::set_metadata_page_header($node, isset($req_params['metadati']));
+ 		_metadata_add_event(TableMetadataEvents::VIEW_EVTTYPE, $node->nid);
+	}
+	else if (strcmp($view_mode, 'search_result')==0)  {
+		
+		$tbl_event = new TableMetadataEvents();
+		// get view count
+		$node->view_count = $tbl_event->getMetadataEventsCount($node->nid, TableMetadataEvents::VIEW_EVTTYPE);
+		
+		// se non è stato impostato provo a determinare i viewer abilitati utilizzando le tassonomie		
+		if(!isset($node->hasGrid)) {
+			$tbl_attach = new TableAttach();
+			$tbl_attach->getExtendedMDAttach($node->nid);
+			// true for all node that has an attachment with type data
+			$node->hasGrid = $tbl_attach->nodeHasDataAttach();
+			// true for all node has format 'geografici'
+			$node->hasMap2D = $tbl_attach->isGeographic($node);
+			// true for all node has format 'geografici' and has attachment type Raw
+			$node->hasMap3D = $node->hasMap2D && $tbl_attach->nodeHasRawAttach();
+			// true for all node has format 'geografici' and has attachment type structured
+			$node->hasGraph = $tbl_attach->nodeHasStructuredAttach();
+		}
+	}
+
+	global $user;
+	if(user_access('administrator', $user) /*|| $node->uid==$user->uid*/) {
+		$node->admin_properties = MetadataHelper::theme_metadata_adminfo($node);
+	}
+	
+	return $node;
+}
+
+/**
+ * Override the rendering of search results.
+ * hook_search_page implementation.
+ * 
+ * @param array An array of search results
+ * 
+ * @return array A renderable array, which will render the formatted search results with a pager included
+ * 
+ * @see hook_search_page
+ */
+function metadata_search_page($results)
+{	
+	$output['#results'] = array();
+	foreach ($results as $entry) {
+		$output['#results'][] = array(
+				'#theme' => 'metadata_search_result', //'#theme' => 'search_result', //
+				'#result' => $entry,
+				'#module' => MODULE,
+		);
+	}
+	$output['#theme'] = 'metadata_search_results';
+	$output['#module'] = MODULE;
+		
+	return $output;
+}
+
+/**
+ * Implements hook_search_execute.
+ * Execute a metadata search.
+ * 
+ * @param string The search keywords as entered by the user.
+ * @param array An optional array of additional conditions, such as filters.
+ * 
+ * @return An array of search results.
+ * 
+ * @see hook_search_execute
+ */
+function metadata_search_execute($keys, $conditions)
+{
+	return node_search_execute($keys, $conditions);
+}
+
+/**
+ * Metadata search condition callback function.
+ * Invoked by search_view() to get an array of additional 
+ * search conditions to pass to search_data().
+ * 
+ * @param string $keys.
+ * 
+ * @return array metadata search condition. 
+ */
+function metadata_search_conditions_callback($keys) {
+	$conditions = array();
+
+// 	if (!empty($_REQUEST['keys'])) {
+// 		$conditions['keys'] = $_REQUEST['keys'];
+// 	}
+// 	if (!empty($_REQUEST['sample_search_keys'])) {
+// 		$conditions['sample_search_keys'] = $_REQUEST['sample_search_keys'];
+// 	}
+// 	if ($force_keys = variable_get('sample_search_force_keywords', '')) {
+// 		$conditions['sample_search_force_keywords'] = $force_keys;
+// 	}
+	return $conditions;
+}
+
+/**
+ * Customize metadata search form:
+ * - add creator filter
+ * - add category filter
+ * - add type filter
+ * - add format filter
+ * 
+ * hook_form_search_form_alter implementation (hook_form_[FORM_ID]_alter).
+ * 
+ * @param array $form Nested array of form elements that comprise the form.
+ * @param array $form_state A keyed array containing the current state of the form. The arguments that drupal_get_form() 
+ *              was originally called with are available in the array $form_state['build_info']['args'].
+ * @see hook_form_FORM_ID_alter 
+ */
+function metadata_form_search_form_alter(&$form, $form_state) {
+	
+	$search_filter_tags = array( 'metadata_lu_format' => 'format', 'metadata_lu_category' => 'category', 'metadata_lu_type' => 'type', 'metadata_lu_license' => 'license');
+	
+	// solo se siamo nella pagina del catalogo dati
+	if ((isset($form_state['build_info']['args']['module']) && 
+			$form_state['build_info']['args']['module']===MODULE . '_catalog')) {
+		global $search_helper;
+		
+		// remove submit button and input keys title
+		unset($form['basic']['keys']['#title']);
+		$form['basic']['submit']['#ajax'] = array(
+				'callback' => 'ajax_catalog_link_callback',
+				'wrapper' => 'metadata-catalog',
+				'path' => 'ajax_catalog_link_callback',
+				'progress'=> array( 'type' => 'none' ),
+		);
+
+		$form['basic']['keys']['#default_value'] = $search_helper->getKeys();
+		// add ajax to input keys
+		$form['basic']['keys']['#ajax'] = array(
+				'callback' => 'ajax_catalog_link_callback',
+				'wrapper' => 'metadata-catalog',
+				'path' => 'ajax_catalog_link_callback',
+				'keypress' => true,
+				'progress'=> array( 'type' => 'none' ),
+		);
+		
+		$form['basic']['term_updater'] = array (
+				'#type' => 'textarea',
+				'#default_value' => '',
+				'#prefix' => '<div style="display: none;">',
+				'#suffix' => '</div>',
+				'#ajax' => array(
+						'callback' => 'ajax_catalog_term_updater',
+// 						'wrapper' => 'metadata-catalog',
+						'path' => 'ajax_catalog_term_updater',
+						'event' => 'onUpdateResult',
+						'progress'=> array( 'type' => 'none' ),
+				),
+		);
+		
+		$form['#action'] = '?q=catalog';
+		$form['#id'] = 'catalog_form';
+		$form['basic']['submit']['#value'] = t('Vai');
+		
+		$module_path = drupal_get_path('module', 'metadata');
+		// add filter container
+		$form['main'] = array(
+				'#type' => 'container',
+				'#attributes' => array('class' => array('search-filters')),
+				'#weight' => 1,
+				'#attached' => array( 
+							'js' => array(
+									$module_path . '/js/jquery-ui.min.js',
+									$module_path . '/js/jquery.easing.1.3.js',
+									$module_path . '/js/jquery.mousewheel.min.js',
+									$module_path . '/js/jquery.mCustomScrollbar.js',
+									$module_path . '/js/metadata.search.js',
+									),
+							'css' => array(
+									$module_path . '/css/jquery.mCustomScrollbar.css' => array('weight' => -20, 'group' => 100),
+									$module_path . '/css/metadatasearch.css' => array('weight' => -20, 'group' => 100),
+									), 
+						),
+		);
+		// add input hidden to handle ajax pager.
+		$form['main']['page'] = array (
+				'#type' => 'hidden',
+				'#default_value' => isset($_REQUEST['page']) ? $_REQUEST['page'] : 0,
+				'#ajax' => array(
+						'callback' => 'ajax_catalog_link_callback',
+						'wrapper' => 'metadata-catalog',
+						'path' => 'ajax_catalog_link_callback',
+						'progress'=> array( 'type' => 'none' ),
+// 						'progress'=> array(
+// 								'type' => 'bar', 'message' => t('Please wait...')),
+				),
+		);
+		// add input hidden to handle ajax order.
+		$form['main']['order_by'] = array (
+				'#type' => 'hidden',
+				'#default_value' => $search_helper->getOrderBy(),
+				'#ajax' => array(
+						'callback' => 'ajax_catalog_link_callback',
+						'wrapper' => 'metadata-catalog',
+						'path' => 'ajax_catalog_link_callback',
+						'progress'=> array( 'type' => 'none' ),
+				),
+		);
+		// add accordion container to form
+		$form['filter-accordion'] = array(
+				'#type' => 'container',
+				'#attributes' => array('class' => array('advanced-search-filters')),
+				'#weight' => 20,
+		);
+		
+		$active = variable_get('catalog_filter_box_configuration', -1);
+		
+		$active = explode(';', $active);
+		// ajax callback options
+		$ajax_opt = array (
+				'callback' => 'ajax_catalog_link_callback',
+				'wrapper' => 'metadata-catalog',
+				'path' => 'ajax_catalog_link_callback',
+				'progress'=> array( 'type' => 'none' ),
+		);
+		$isAccordion = !in_array('author', $active);
+		MetadataFilters::add_authorfilter_form_array($form, 'main', $ajax_opt, $isAccordion);
+		
+		$form_name = 'main';
+		$isAccordion = true;
+		// add taxonomy filters.
+ 		$vocabularies = taxonomy_get_vocabularies();
+ 		foreach ($vocabularies as $vid => $voc) {
+			
+ 			// is active?
+ 			if(in_array($vid, $active)) {
+				$form_name = 'main';
+				$isAccordion = false;
+ 			}
+ 			else {
+ 				$form_name = 'filter-accordion';
+ 				$isAccordion = true;
+ 			}
+ 			
+ 			$isMetadataVocabulary = strcmp($voc->module, MODULE)==0;
+ 			
+ 			if($isMetadataVocabulary && $voc->hierarchy>=1)
+ 			{
+ 				// add taxonomy filter for hierarchical vocabulary
+ 				MetadataFilters::add_treefilter_form_array($form, $form_name, $voc, $ajax_opt, $isAccordion);
+ 			}
+ 			else if($isMetadataVocabulary)
+ 			{
+ 				// add taxonomy filter
+ 				$opt = $options_obj = taxonomy_get_tree($voc->vid);
+ 				$options = array();
+ 				foreach($options_obj as $opt)
+ 					$options[$opt->tid] = $opt->name  . '<span class="term-count" id="term-' . $opt->tid . '">(0/0)</span>';
+ 				
+ 				MetadataFilters::add_filter_form_array($form, $form_name, $voc, $options, $search_helper->getTaxonomyFilter($voc->machine_name), $ajax_opt, $isAccordion);
+ 			}
+ 		}
+ 		
+ 		if(user_access('administrator') || user_access('administer content types')){
+ 			$form_name = 'main';
+ 			$isAccordion = false;
+ 			$voc = new stdClass();
+ 			$voc->name = t('Filtri amministratore');
+ 			$voc->machine_name = 'administration_tools';
+ 			$options = array( 
+ 					'not_approved' => t('Schede non approvate') . '<span class="term-count" id="status_' . TableMetadata::NOT_APPROVED . '">(0/0)</span>', 
+ 					'approved' => t('Schede Approvate') . '<span class="term-count" id="status_' . TableMetadata::APPROVED . '">(0/0)</span>',
+ 					'rejected' => t('Schede scartate') . '<span class="term-count" id="status_' . TableMetadata::REJECTED . '">(0/0)</span>',
+ 					'visible' => t('Schede Visibili') . '<span class="term-count" id="visibility_' . TableMetadata::VISIBLE . '">(0/0)</span>',
+ 					'not_visible' => t('Schede non visibili') . '<span class="term-count" id="visibility_' . TableMetadata::HIDDEN . '">(0/0)</span>',
+ 					 );
+ 			
+ 			MetadataFilters::add_filter_form_array($form, $form_name, $voc, $options, $search_helper->getAdminFilter(), $ajax_opt, $isAccordion);
+ 		}
+		
+	}
+}
+
+/**
+ * Add administrator task support to catalog page.
+ * 
+ * @param array $form $form Nested array of form elements that comprise the form.
+ * @param array $form_state A keyed array containing the current state of the form. 
+ * @return array form
+ */
+function metadata_admtools_form($form, &$form_state) {
+	$module_path = drupal_get_path('module', 'metadata');
+	
+	$form['admtools'] = array(
+			'#type' => 'container',
+			'#attributes' => array ( 'style' => 'display:none;' ),
+			'#attached' => array(
+					'js' => array(
+							$module_path . '/js/metadata.admin.js',
+					),
+			),
+	);
+	
+	$form['admtools']['mail-box'] = array(
+		'#type' => 'container',
+		'#id' => 'mail-box',
+	);
+	
+	$form['admtools']['mail-box']['mail-subject'] = array(
+		'#type' => 'textfield',
+		'#title' => t('Subject'),
+		'#default_value' => '[DatiOpen.it] Richiesta correzione scheda',
+		'#id' => 'mail-subject',
+	);
+	
+	$form['admtools']['mail-box']['mail-body'] = array(
+			'#type' => 'textarea',
+			'#title' => t('Messaggio'),
+			'#default_value' => '',
+			'#size' => 60,
+			'#maxlength' => 128,
+			'#id' => 'mail-body',
+	);
+	
+	$form['admtools']['mail-box']['send'] = array(
+		'#type' => 'button',
+		'#value' => 'Invia',
+		'#attributes' => array ( 'title' => 'Invia la richiesta correzione agli autori delle schede selezionate' ),
+	);
+
+	$form['admtools']['task'] = array(
+			'#type' => 'hidden',
+			'#defaultvalue' => '',
+			'#id' => 'adm-task',
+	);
+	
+	$form['admtools']['mids'] = array(
+			'#type' => 'hidden',
+			'#defaultvalue' => '',
+			'#id' => 'adm-task-ids',
+	);
+	
+	$form['admtools']['subject'] = array(
+			'#type' => 'hidden',
+			'#defaultvalue' => '',
+			'#id' => 'adm-task-subject',
+	);
+	
+	$form['admtools']['body'] = array(
+			'#type' => 'hidden',
+			'#defaultvalue' => '',
+			'#id' => 'adm-task-body',
+	);
+	
+	$form['admtools']['submit'] = array(
+			'#type' => 'submit',
+			'#value' => t('Delete'),
+			'#id' => 'adm-task-handler',
+	);
+	
+	$form['admtools']['submit']['#ajax'] = array(
+			'callback' => 'ajax_admtask_callback',
+			'wrapper' => 'adm-task-result-message',
+			'path' => 'ajax_metadata_adm_task',
+			'event' => 'onExecuteTask',
+	);
+	
+	return $form;
+}
+
+/**
+ * Get array of selected term.
+ * 
+ * @param array $term tree.
+ * @param array $term_id in/out parameter.
+ */
+function _get_form_seleted_hierarchy_terms($term, &$term_id_array)
+{
+	// loop on tree term
+	foreach($term as $key => $value) {
+		// is not a leaf?
+		if(is_array($value)) {
+			// recursive step
+			_get_form_seleted_hierarchy_terms($value, $term_id_array);
+		}
+		else {
+			// leaf founded -> add term to output
+			$term_id_array[$key] = $value;
+		}
+	}
+}
+
+/**
+ * Form API callback for the search form. Registered in metadata_form_alter().
+ * 
+ * @param array Nested array of form elements that comprise the form.
+ * @param array A keyed array containing the current state of the form. The arguments that drupal_get_form() 
+ *              was originally called with are available in the array $form_state['build_info']['args'].
+ */
+function metadata_search_validate($form, &$form_state) {
+// 	node_search_validate($form, $form_state);
+	// Initialize using any existing basic search keywords.
+	$keys = $form_state['values']['processed_keys'];
+	
+	// author
+	if (isset($form_state['values']['metadata_author']) && is_array($form_state['values']['metadata_author'])) {
+		$languages = array_filter($form_state['values']['metadata_author']);
+		if (count($languages)) {
+			$keys = search_expression_insert($keys, 'author', implode(',', $languages));
+		}
+	}
+	// category
+	if (isset($form_state['values']['metadata_filter_metadata_lu_category']) && is_array($form_state['values']['metadata_filter_metadata_lu_category'])) {
+		$languages = array_filter($form_state['values']['metadata_filter_metadata_lu_category']);
+		if (count($languages)) {
+			$keys = search_expression_insert($keys, 'category', implode(',', $languages));
+		}
+	}
+	// type
+	if (isset($form_state['values']['metadata_filter_metadata_lu_type']) && is_array($form_state['values']['metadata_filter_metadata_lu_type'])) {
+		$languages = array_filter($form_state['values']['metadata_filter_metadata_lu_type']);
+		if (count($languages)) {
+			$keys = search_expression_insert($keys, 'type', implode(',', $languages));
+		}
+	}
+	// license
+	if (isset($form_state['values']['metadata_filter_metadata_lu_license']) && is_array($form_state['values']['metadata_filter_metadata_lu_license'])) {
+		$languages = array_filter($form_state['values']['metadata_filter_metadata_lu_license']);
+		if (count($languages)) {
+			$keys = search_expression_insert($keys, 'license', implode(',', $languages));
+		}
+	}
+	// format
+	if (isset($form_state['values']['metadata_filter_metadata_lu_format']['und']) && is_array($form_state['values']['metadata_filter_metadata_lu_format']['und'])) {
+		$tmp_filter = array_filter($form_state['values']['metadata_filter_metadata_lu_format']['und']);
+		$array_filter = array();
+		foreach ($tmp_filter as $value) {
+			
+// 			$array_filter[] = $value['tid'];
+		}
+		
+		if (count($array_filter)) {
+			$keys = search_expression_insert($keys, 'format', implode(',', $array_filter));
+		}
+	}
+	
+	
+	$vocabularies = taxonomy_get_vocabularies();
+	
+	foreach ($vocabularies as $voc) {
+	
+		if(strcmp($voc->module, MODULE)==0 && $voc->hierarchy==1)
+		{
+			$item_name = 'metadata_filter_' . $voc->machine_name;
+			$condition_key;
+			
+			switch ($voc->machine_name) {
+				case 'metadata_lu_category':
+					$condition_key = t('category');
+					break;
+				case 'metadata_lu_format':
+						$condition_key = t('format');
+						break;
+				case 'metadata_lu_type':
+					$condition_key = t('type');
+					break;
+				case 'metadata_lu_license':
+						$condition_key = t('license');//author:Comune_di_Livorno category:Ambiente license:CREATIVE_COMMONS type:Demografici
+						break;
+				default:
+					;
+				break;
+			}
+			
+			
+			if (isset($form_state['values'][$item_name]) && is_array($form_state['values'][$item_name])) {
+				$languages = array_filter($form_state['values'][$item_name]);
+				if (count($languages)) {
+					$keys = search_expression_insert($keys, $condition_key, implode(',', $languages));
+				}
+			}
+		}
+	}
+	
+	// Insert extra restrictions into the search keywords string.
+	if (isset($form_state['values']['type']) && is_array($form_state['values']['type'])) {
+		// Retrieve selected types - Forms API sets the value of unselected
+		// checkboxes to 0.
+		$form_state['values']['type'] = array_filter($form_state['values']['type']);
+		if (count($form_state['values']['type'])) {
+			$keys = search_expression_insert($keys, 'type', implode(',', array_keys($form_state['values']['type'])));
+		}
+	}
+	
+	if (isset($form_state['values']['term']) && is_array($form_state['values']['term']) && count($form_state['values']['term'])) {
+		$keys = search_expression_insert($keys, 'term', implode(',', $form_state['values']['term']));
+	}
+	if (isset($form_state['values']['language']) && is_array($form_state['values']['language'])) {
+		$languages = array_filter($form_state['values']['language']);
+		if (count($languages)) {
+			$keys = search_expression_insert($keys, 'language', implode(',', $languages));
+		}
+	}
+	if (isset($form_state['values']['or']) && $form_state['values']['or'] != '') {
+		if (preg_match_all('/ ("[^"]+"|[^" ]+)/i', ' ' . $form_state['values']['or'], $matches)) {
+			$keys .= ' ' . implode(' OR ', $matches[1]);
+		}
+	}
+	if (isset($form_state['values']['negative']) && $form_state['values']['negative'] != '') {
+		if (preg_match_all('/ ("[^"]+"|[^" ]+)/i', ' ' . $form_state['values']['negative'], $matches)) {
+			$keys .= ' -' . implode(' -', $matches[1]);
+		}
+	}
+	if (isset($form_state['values']['phrase']) && $form_state['values']['phrase'] != '') {
+		$keys .= ' "' . str_replace('"', ' ', $form_state['values']['phrase']) . '"';
+	}
+	if (!empty($keys)) {
+		form_set_value($form['basic']['processed_keys'], trim($keys), $form_state);
+	}
+}
+
+/**
+ * Update search indexing (table search_index).
+ * Idexing metadata description.
+ * hook_node_update_index implementation.
+ * 
+ * @param object $node The node being indexed.
+ * @return additional string to indexing.
+ */
+function metadata_node_update_index( $node )
+{
+	$text = '';
+	$metadatas = db_query('SELECT description FROM {metadata} WHERE nid = :nid', array(':nid' => $node->nid));
+	foreach ($metadatas as $metadata) {
+		$text .= '<h2>' . check_plain($metadata->description) . '</h2>';
+	}
+	return $text;
+}
+
+/**
+ * Extract condition by taxonomy tree.
+ * 
+ * @param array $term_ids 
+ * @param SelectQuery $sub_query
+ * @param QueryConditionInterface
+ */
+function _set_tree_searchquery_condition($terms) {
+	$cond = db_or();
+	// loop on tree term
+	foreach($terms as $key => $value) {
+		
+		// se il nodo ha dei figli
+		if($key == $value & isset($terms[$key.'-children'])) {
+		
+		// is not a leaf?
+		//if(is_array($value)) {
+			// recursive step
+			$children_cond = _set_tree_searchquery_condition($terms[$key.'-children']);
+			
+			$cond->condition(db_and()->condition('TI.tid', $key)->condition($children_cond));
+		}
+		else if(!is_array($value)){
+			
+			$cond->condition('TI.tid', $value, '=');
+		}
+		else if(is_array($value)) {
+			$cond->condition(_set_tree_searchquery_condition($value));
+		}
+	}
+	
+	return $cond;
+} 
+
+/**
+ * Perform necessary alterations to the JavaScript before it is presented on the page.
+ * Load jQuery v 1.7.1.
+ * 
+ * @param array $javascript An array of all JavaScript being presented on the page.
+ */
+function metadata_js_alter(&$javascript) {
+	$module_path = drupal_get_path('module', 'metadata');
+	
+	// Swap out jQuery to use an updated version of the library.
+	$javascript['misc/jquery.js']['data'] = $module_path . '/js/jquery-1.7.1.min.js';
+	// Swap out jQuery UI to use an updated version of the library.
+	if(isset($javascript['misc/ui/jquery.ui.core.min.js']))
+		$javascript['misc/ui/jquery.ui.core.min.js']['data'] = $module_path . '/js/ui/jquery.ui.core.min.js';
+	else
+		// jquery.ui isn't loaded for anonymous user
+		$javascript[$module_path . '/js/ui/jquery.ui.core.min.js'] = array( 
+				'type' => 'file',
+				'group' => -100,
+				'weight' => -18,
+				'scope' => 'header',
+				'every_page' => true,
+				'data' => $module_path . '/js/ui/jquery.ui.core.min.js',
+				'preprocess' => false,
+				'cache' => true,
+				'defer' => false,
+		);
+	
+	if(!isset($javascript['sites/all/modules/fivestar/js/fivestar.ajax.js']))
+	{
+		$javascript['sites/all/modules/fivestar/js/fivestar.ajax.js'] =	Array(
+			'group' => 0,
+			'type' => 'file',
+			'every_page' => false,
+			'weight' => 0.019,
+			'scope' => 'header',
+			'cache' => true,
+			'defer' => false,
+			'preprocess' => true,
+			'data' => 'sites/all/modules/fivestar/js/fivestar.ajax.js', );
+		
+	}
+	
+	if(!isset($javascript['sites/all/modules/fivestar/js/fivestar.js']))
+	{
+		$javascript['sites/all/modules/fivestar/js/fivestar.js'] =	Array(
+				'group' => 0,
+				'type' => 'file',
+				'every_page' => false,
+				'weight' => 0.019,
+				'scope' => 'header',
+				'cache' => true,
+				'defer' => false,
+				'preprocess' => true,
+				'data' => 'sites/all/modules/fivestar/js/fivestar.js', );
+	
+	}
+	
+	$file = $module_path . '/js/metadata.search.widget.js'; 
+	$javascript[$file] = array( 
+		'type' => 'file',
+		'group' => 100,
+		'weight' => 20,
+		'scope' => 'header',
+		'every_page' => true,
+		'data' => $file,
+		'preprocess' => false,
+		'cache' => true,
+		'defer' => false,
+	);
+	
+}
+
+/**
+ * Alter CSS files before they are output on the page.
+ * hook_css_alter implementation.
+ * 
+ * @param array $css An array of all CSS items (files and inline CSS) being requested on the page.
+ */
+function metadata_css_alter(&$css) {
+	$module_path = drupal_get_path('module', 'metadata');
+	
+	if(isset($css['misc/ui/jquery.ui.theme.css']))
+	{	
+		unset($css['misc/ui/jquery.ui.theme.css']);
+	}
+	
+	$file = $module_path  . '/style/spodata_jqtheme/jquery-ui-1.8.18.custom.css';
+	$css[$file] = array(
+      'type' => 'file',
+      'group' => CSS_DEFAULT,
+      'weight' => 0,
+      'every_page' => FALSE,
+      'media' => 'all',
+      'preprocess' => TRUE,
+      'data' => $file,
+      'browsers' => array( 'IE' => true, '!IE' => true),
+    );
+	
+	$file = $module_path . '/style/spodata_jqtheme/jquery.ui.dialog.css';
+	$css[$file] = array(
+			'type' => 'file',
+			'group' => CSS_DEFAULT,
+			'weight' => 0,
+			'every_page' => FALSE,
+			'media' => 'all',
+			'preprocess' => TRUE,
+			'data' => $file,
+			'browsers' => array( 'IE' => true, '!IE' => true),
+	);
+	
+	$file = $module_path . '/style/spodata_jqtheme/jquery.ui.all.css';
+	$css[$file] = array(
+			'type' => 'file',
+			'group' => CSS_DEFAULT,
+			'weight' => 0,
+			'every_page' => FALSE,
+			'media' => 'all',
+			'preprocess' => TRUE,
+			'data' => $file,
+			'browsers' => array( 'IE' => true, '!IE' => true),
+	);
+	
+	if(!isset($css['sites/all/modules/fivestar/css/fivestar.css'])) {
+		$css['sites/all/modules/fivestar/css/fivestar.css'] = array(
+			'group' => 0,
+			'type' => 'file',
+			'weight' => 0.024,
+			'every_page' => false,
+			'media' => 'all',
+			'preprocess' => true,
+			'data' => 'sites/all/modules/fivestar/css/fivestar.css',
+			'browsers' => array( 'IE' => true, '!IE' => true), 	
+		);
+	}
+}
+
+/**
+ * Metadata Action declaration .
+ * Declares information about actions.
+ * Implementes hook_action_info.
+ * 
+ * @return An associative array of action descriptions.
+ */
+function metadata_action_info() {
+	return array(
+			'metadata_add_event_action' => array(
+					'type' => 'metadata',
+					'label' => t('Add event to metadata events.'),
+					'configurable' => TRUE,
+					'triggers' => array(
+							'metadata_view',
+							'metadata_insert',
+							'metadata_update',
+							'metadata_delete',
+							'metadata_search',
+							'metadata_author_added'
+					),
+			),
+	);
+}
+
+/**
+ * Define 'metadata action configuration form'.
+ */
+function metadata_add_event_action_form($context) {
+	$form = array();
+	
+	$form['event_type'] = array(
+			'#type' => 'textfield',
+			'#title' => t('Event type label'),
+			'#size' => '6',
+			'#maxlength' => '60',
+			'#description' => t('Add your custom event type'),
+			'#default_value' => isset($context['event_type']) ? $context['event_type'] : '',
+	);
+	
+	return $form;
+}
+
+/**
+ * Define 'metadata action configuration form' validation. 
+ */
+function metadata_add_event_action_validate($form, $form_state) {
+	
+	if(!isset($form_state['values']['event_type']))
+		form_set_error('metadata_add_event_action', t('Missing event type.'));
+	elseif (empty($form_state['values']['event_type']))
+		form_set_error('metadata_add_event_action', t('Missing event type.'));
+	elseif (strlen($form_state['values']['event_type'])<=0 || strlen($form_state['values']['event_type'])>50)
+		form_set_error('metadata_add_event_action', t('Event type label is too long.'));
+}
+
+/**
+ * Define metadata 'action configuration form' submit.
+ */
+function metadata_add_event_action_submit($form, $form_state) {
+	
+	return array( 'event_type' =>  check_plain($form_state['values']['event_type']));
+}
+
+/**
+ * Metadata trigger declarations.
+ * This hook is used by the trigger module to create a list of triggers (events) that users can assign actions to.
+ * hook_trigger_info implementation.
+ * 
+ * @return A nested associative array.
+ * @see hook_trigger_info
+ */
+function metadata_trigger_info() {
+	return array(
+			'metadata' => array(
+					'metadata_insert' => array(
+							'label' => t('After new Metadata insert.'),
+					),
+					'metadata_view' => array(
+							'label' => t('On Metadata view.'),
+					),
+					'metadata_search' => array(
+							'label' => t('After Metadata shows in search result.'),
+					),
+					'metadata_update' => array(
+							'label' => t('After Metadata is updated.'),
+					),
+					'metadata_delete' => array(
+							'label' => t('After Metadata is deleted.'),
+					),
+					'metadata_author_added' => array(
+							'label' => t('After Metadata author is added'),
+					),
+			),
+	);
+}
+
+/**
+ * Save a event.
+ * @param int $evt_type event type id
+ * @param mixed $id_metadata int or int array of metadata id.
+ */
+function _metadata_add_event($evt_type, $id_metadata, &$event_handler=NULL) {
+	try {
+		if(is_null($event_handler))
+			$t_handler = new TableMetadataEvents();
+		else
+			$t_handler = $event_handler;
+			
+		$t_handler->insert($evt_type, $id_metadata);
+	} catch (Exception $ex) {
+		watchdog_exception('metadata', $ex);
+	}
+}
+
+/**
+ * Prepare html output for metadata statistics block.
+ * Internal only.
+ * @return string html of statistics block content.
+ */
+function theme_metadata_statistics() {
+	
+	$most_downloaded_count = variable_get('metadatastat_most_downloaded_count', 5);
+	$most_searched_count = variable_get('metadatastat_most_searched_count', 5);
+	$most_voted_count = variable_get('metadatastat_most_voted_count', 5);
+	$most_active_count = variable_get('metadatastat_most_active_count', 5);
+	$last_update_count = variable_get('metadatastat_last_update_count', 5);
+	$most_viewed_count = variable_get('metadatastat_most_viewed_count', 5);
+	
+	// last update dataset
+	$output = '<h2>' . t('Ultimi aggiornamenti') . '</h2>';
+	$output .= '<ol class="last-update">';
+	$last_update = MetadataStatisticsHelper::getLastUpdatedMetadata($last_update_count);
+	
+	// write last dataset
+	foreach ($last_update as $row) {
+		$output .= '<li>' . $row->title . '</li>';
+	}
+	
+	$output .= '</ol>';
+	
+	// most active authors.
+	$output .= '<h2>' . t('Autori pi&ugrave; attivi') . '</h2>';
+	$output .= '<ol class="most-active">';
+	$most_active = MetadataStatisticsHelper::getMostActiveAuthors($most_active_count);
+	
+	// write last dataset
+	foreach ($most_active as $row) {
+		$author = MetadataHelper::getAuthorById($row->id); 
+		
+		$output .= '<li>' . $author->name . '</li>';
+	}
+	
+	$output .= '</ol>';
+	
+	// most voted authors.
+	$output .= '<h2>' . t('Autori pi&ugrave; votati') . '</h2>';
+	$output .= '<ol class="most-voted">';
+	$most_voted = MetadataStatisticsHelper::getMostVotedAuthors($most_voted_count);
+	
+	// write last dataset
+	foreach ($most_voted as $row) {
+		$author = MetadataHelper::getAuthorById($row->id_author);
+	
+		$output .= '<li>' . $author->name . '</li>';
+	}
+	
+	$output .= '</ol>';
+	
+	// Schede più visualizzate.
+	$output .= '<h2>' . t('Pi&ugrave; visti') . '</h2>';
+	$output .= '<ol>';
+	$most_viewed = MetadataStatisticsHelper::getMostViewedMetadata($most_viewed_count);
+	$md_table = new TableMetadata();
+	// write last dataset
+	foreach ($most_viewed as $row) {
+		$metadata = $md_table->bind($row->id_metadata);
+	
+		$output .= '<li>' . $metadata->title . '</li>';
+	}
+	
+	$output .= '</ol>';
+	
+	// Schede più cercati.
+	$output .= '<h2>' . t('Pi&ugrave; cercati') . '</h2>';
+	$output .= '<ol>';
+	$most_searched = MetadataStatisticsHelper::getMostSearchedMetadata($most_searched_count);
+	$md_table = new TableMetadata();
+	// write last dataset
+	foreach ($most_searched as $row) {
+		$metadata = $md_table->bind($row->id_metadata);
+	
+		$output .= '<li>' . $metadata->title . '</li>';
+	}
+	
+	$output .= '</ol>';
+
+	$output .= '</ol>';
+	
+	// Schede più scaricati.
+	$output .= '<h2>' . t('Pi&ugrave; scaricati') . '</h2>';
+	$output .= '<ol>';
+	$most_downloaded = MetadataStatisticsHelper::getMostDownloadedMetadata($most_downloaded_count);
+	$md_table = new TableMetadata();
+	// write last dataset
+	foreach ($most_downloaded as $row) {
+		$metadata = $md_table->bind($row->id_metadata);
+	
+		$output .= '<li>' . $metadata->title . '</li>';
+	}
+	
+	$output .= '</ol>';
+	
+	return $output;
+}
+/**
+ * hook_preprocess_page implementation.
+ * @param array $variables The variables array (modify in place).
+ */
+function metadata_preprocess_page(&$variables, $hook) {
+	if (!empty($variables['node'])) {
+		if($variables['node']->type===MODULE) {
+			// is metadata delete page?
+			if(isset($variables['node']->__action) && $variables['node']->__action=='delete') {
+				$variables['theme_hook_suggestions'][] = 'page__node__delete_' . $variables['node']->type;
+			}
+			else {
+				$variables['theme_hook_suggestions'][] = 'page__node_' . $variables['node']->type;
+			}
+			
+			if(preg_match('/^http:\/\//i', $variables['node']->author['logo'])==0) {
+				$logo = drupal_get_path('module', MODULE) . '/img/authors/' . $variables['node']->author['logo'];
+			}
+			else {
+				$logo = $variables['node']->author['logo'];
+			}
+			
+			$aid = $variables['node']->author['id'];
+			$url = url(drupal_get_path_alias("catalog//authors=$aid"), array('absolute' => TRUE));
+			
+			$variables['title_prefix'] = '<div id="author-logo-container">' . "<a href='$url'>" . 
+				theme_image(array(
+					'path' => $logo,
+					'alt' => $variables['node']->author['name'],
+					'title' => $variables['node']->author['name'],
+					'attributes' => array(
+								'class' => 'author-logo',
+							),
+					)) . '</a></div>';
+			
+			// set services
+			$variables['node']->ODataServices = '.ODataServices = ' . MetadataHelper::get_js_services();
+		}
+	}
+}
+/**
+ * Implements hook_library.
+ * Registers JavaScript/CSS libraries associated with a module.
+ * 
+ * @return An array defining libraries associated with a module.
+ * 
+ * @example // Add required JavaScript and Stylesheet.
+ * 			drupal_add_library('metadata', 'viewer');
+ */
+function metadata_library() {
+	$base_path = drupal_get_path('module', 'metadata');
+	// viewer library definition
+	$libraries['viewer'] = array(
+			// The human readable name of the library.
+			'title' => 'Metadata Viewer',
+			'version' => '1.0.0',
+			// key = js path; value=> drupal_add_js option
+			'js' => array(
+				$base_path . '/js/ui/jquery.ui.widget.min.js' => array( 'type' => 'file', 'weight' => -20, 'group' => JS_LIBRARY),
+				$base_path . '/js/ui/jquery.ui.tabs.min.js' => array('type' => 'file', 'weight' => 20, 'group' => JS_LIBRARY),
+				$base_path . '/js/metadata.js' => array('type' => 'file', 'weight' => 20),
+				'var StatPortalOpenData = StatPortalOpenData || {};StatPortalOpenData.Enums = StatPortalOpenData.Enums || {};' 
+					=> array( 'type' => 'inline', 'weight' => -20, 'group' => JS_LIBRARY ),
+				$base_path . '/viewer/earth_viewer/js/earth_viewer.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				// griglia
+				$base_path . '/viewer/commons/jquery_plugins/jqGrid4.4.0/js/i18n/grid.locale-it.js' => array('type' => 'file', 'weight' => -20, 'group' => JS_LIBRARY),
+				$base_path . '/viewer/commons/js/datajs-1.0.2.js' => array('type' => 'file', 'weight' => 20),
+				$base_path . '/viewer/multidimensional_viewer/js/multidimensional_viewer.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqGrid4.4.0/js/jquery.jqGrid.src.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				// commons
+				$base_path . '/viewer/commons/jquery_plugins/xml2json/jquery.xml2json.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/ODataGrid/js/eventsManager.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/js/utility.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/js/ODataUtility.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/ODataGrid/js/jquery.ODataGrid.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/tmpl/jquery.tmpl.js' => array('type' => 'file', 'weight' => 20),
+				$base_path . '/viewer/commons/jquery_plugins/multiselect/jquery.multiselect.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/js/State.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/js/xml2json.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/js/soapclient.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				// grafici
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/jquery.jqplot.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.canvasAxisTickRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.canvasTextRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.canvasAxisLabelRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.dateAxisRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.barRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.categoryAxisRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.pieRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.donutRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.highlighter.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.funnelRenderer.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.cursor.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/js/ui/jquery.ui.position.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/js/ui/jquery.ui.autocomplete.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/graph_viewer/js/graph_viewer.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				// mappe
+				$base_path . '/viewer/geo_viewer/js/geo_viewer.js' => array('type' => 'file', 'weight' => 20, 'group' => 200, 'group' => 200),
+				'https://www.google.com/jsapi' => array('type' => 'external', 'weight' => 20, 'group' => 200),
+				'google.load("earth", "1");' => array('type' => 'inline', 'weight' => 20, 'group' => 200),
+				'var StatPortalOpenData = StatPortalOpenData || {};StatPortalOpenData.Enums = StatPortalOpenData.Enums || {};' 
+					=> array('type' => 'inline', 'weight' => 20),
+				$base_path . '/viewer/commons/js/datajs-1.0.2.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqGrid4.4.0/js/i18n/grid.locale-it.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqGrid4.4.0/js/jquery.jqGrid.src.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/xml2json/jquery.xml2json.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/ODataGrid/js/eventsManager.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/js/utility.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/js/ODataUtility.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/ODataGrid/js/jquery.ODataGrid.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/tmpl/jquery.tmpl.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/multiselect/jquery.multiselect.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/js/State.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/js/xml2json.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/js/soapclient.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+			),
+			// key = css path; value=> drupal_add_css option
+			'css' => array(
+				$base_path . '/viewer/commons/jquery_plugins/jqGrid4.4.0/css/ui.jqgrid.css' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/style/spodata_jqtheme/jquery.ui.tabs.css' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_ui/css/custom-theme/redmond/jquery-ui-1.8.18.custom.css' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/graph_viewer/css/graph_viewer.css' => array('type' => 'file', 'weight' => 20),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/jquery.jqplot.min.css' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqGrid4.4.0/css/ui.jqgrid.css' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/ODataGrid/css/ui.ODataGrid.css' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/multiselect/jquery.multiselect.css' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/multidimensional_viewer/css/multidimensionalViewer.css' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/css/commons.css' => array('type' => 'file', 'weight' => 20, 'group' => 200)
+			),
+			'dependencies' => array(),
+		);
+	
+	// viewer library definition
+	$libraries['report_viewer'] = array(
+	// The human readable name of the library.
+			'title' => 'Metadata Report Viewer',
+			'version' => '1.0.0',
+			// key = js path; value=> drupal_add_js option
+			'js' => array(
+					$base_path . '/js/ui/jquery.ui.widget.min.js' => array( 'type' => 'file', 'weight' => -20, 'group' => JS_LIBRARY),
+					$base_path . '/js/ui/jquery.ui.tabs.min.js' => array('type' => 'file', 'weight' => 20, 'group' => JS_LIBRARY),
+					$base_path . '/js/metadata.js' => array('type' => 'file', 'weight' => 20),
+					
+			),
+			// key = css path; value=> drupal_add_css option
+			'css' => array(
+					$base_path . '/style/spodata_jqtheme/jquery.ui.tabs.css' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+					$base_path . '/viewer/commons/jquery_ui/css/custom-theme/redmond/jquery-ui-1.8.18.custom.css' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+			),
+			'dependencies' => array(),
+	);
+	
+	$libraries['jqplot'] = array(
+	// The human readable name of the library.
+			'title' => 'jQPlot - jquery plugin',
+			'version' => '1.0.0',
+			// key = js path; value=> drupal_add_js option
+			'js' => array(
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/jquery.jqplot.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.canvasAxisTickRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.canvasTextRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.canvasAxisLabelRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.dateAxisRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.barRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.categoryAxisRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.pieRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.donutRenderer.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.highlighter.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.funnelRenderer.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/plugins/jqplot.cursor.min.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+				$base_path . '/js/metadata.userprofile.js' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+			),
+			// key = css path; value=> drupal_add_css option
+			'css' => array(
+				$base_path . '/viewer/commons/jquery_plugins/jqPlot/jquery.jqplot.min.css' => array('type' => 'file', 'weight' => 20, 'group' => 200),
+			),
+			'dependencies' => array(),
+	);
+	
+	// ETL Wizard library definition
+	$libraries['etl_wizard'] = array (
+			'title' => 'ETL Wizard',
+			'version' => '1.0.0',
+			// key = js path; value=> drupal_add_js option
+			'js' => array(
+					'var StatPortalOpenData = StatPortalOpenData || {}; StatPortalOpenData' .
+							'.ODataServices = ' . MetadataHelper::get_js_services() => array ( 'type' => 'inline', 'weight' => 15),
+					$base_path . '/js/etl/ETL_dataLoadingWizard.js' => array('weight' => 16),
+					$base_path . '/viewer/commons/js/soapclient.js' => array('weight' => 17),
+					$base_path . '/viewer/commons/js/xml2json.js' => array('weight' => 18),
+					$base_path . '/viewer/commons/jquery_plugins/tmpl/jquery.tmpl.js' => array('weight' => 19),
+					$base_path . '/js/etl/formToWizard.js' => array('weight' => 20),
+					'jQuery(document).ready(function() {
+						jQuery("#loadDataForm").formToWizard();
+					});' => array('weight' => 20, 'type' => 'inline'),
+			),
+			// key = css path; value=> drupal_add_css option
+			'css' => array(
+					$base_path . '/css/etl/ETL_dataLoadingWizard.css' => array('weight' => 20),
+					$base_path . '/css/etl/formToWizard.css' => array('weight' => 20),
+			),
+			'dependencies' => array(),
+	);
+	
+	$libraries['catalog'] = array(
+		'title' => 'Catalogo dati',
+		'version' => '1.0.0',
+		'js' => array(
+			'var StatPortalOpenData = StatPortalOpenData || {};StatPortalOpenData.Catalog = StatPortalOpenData.Catalog || {};' => array ( 'type' => 'inline', 'weight' => 0),
+			$base_path . '/js/metadata.search.widget.js' => array('weight' => 20),
+		),
+	);
+
+	return $libraries;
+}
+
+/**
+ * Return data upload form.
+ * @param array Nested array of form elements that comprise the form.
+ * @param array A keyed array containing the current state of the form. The arguments that drupal_get_form() 
+ *              was originally called with are available in the array $form_state['build_info']['args'].
+
+ * @return array
+ */
+function metadata_dataupload_form($form, &$form_state) {
+	global $user;
+	$node = isset($form_state['node']) ? $form_state['node'] : false;
+	$default = '';
+	// get attach file id
+	if(isset($node->attachments) && count($node->attachments)>=1 ) {
+		foreach ($node->attachments as $id_attach => $attach) {
+			if(isset($attach->fid) && ($attach->id_attach_type == TableAttach::TYPE_DATA_MD || $attach->id_attach_type == TableAttach::TYPE_DATA_RAW) ) {
+				$default = $attach->fid;
+			}
+		}
+	}
+	
+	$file_max_mb = in_array('administrator', $user->roles) ? 300 : 20; 
+	$form = array();
+	$form["data_file"] = array(
+			'#prefix' => "<label>" . t('Carica un file') . "</label>",
+			'#type' => 'managed_file',
+			'#default_value' => $default,
+			'#upload_location' => 'public://metadata_updfile/',// + $user->uid + '/',
+			'#progress_indicator' => true,
+			'#upload_validators' => array(
+					'file_validate_extensions' => array('xls csv xlsx dbf zip txt mdb kml'), 
+					// Pass the maximum file size in bytes
+					'file_validate_size' => array($file_max_mb*1024*1024),
+					'metadata_upload_file_size_validator' => array($file_max_mb*1024*1024),
+			),
+			'#id' => 'edit-data-file',
+	);
+	
+	$uid = -1;
+	if(isset($form_state['node']->attachments)) {
+		foreach ($form_state['node']->attachments as $id_attach => $attach) {
+			if(isset($attach->type_info) && isset($attach->type_info->odata_id))
+				$uid = $attach->type_info->odata_id;
+		}
+	}
+	
+	$form['uid_odata_attach'] = array(
+			'#type' => 'hidden',
+			'#value' => $uid,
+			'#attributes' => array('id' => 'uid_odata_attach'),
+	);
+
+	return $form;
+}
+
+/**
+ * File size validator used in metadata_dataupload_form.
+ * 
+ * @param stdClass $file file object
+ * @param integer $size max file size. 
+ * @return error message array.
+ */
+function metadata_upload_file_size_validator(stdClass $file, $size) {
+	$errors = array();
+	if($file->filesize>$size && $file->filemime!='application/zip') {
+		$errors[] = t('Il file caricato supera la dimensione massima consentita. Riprovare comprimendo il file(zip).');
+	}
+	else if($file->filesize>$size) {
+		$errors[] = t('Il file caricato supera la dimensione massima consentita. Contattare l\'amministratore del sistema per eseguire il caricamento.');
+	} 
+	return $errors;
+}
+
+/**
+ * Return data upload form.
+ * @param array Nested array of form elements that comprise the form.
+ * @param array A keyed array containing the current state of the form. The arguments that drupal_get_form() 
+ *              was originally called with are available in the array $form_state['build_info']['args'].
+ * @return array The form array.
+ */
+function metadata_attachmentupload_form($form, &$form_state) {
+	$form = array();
+	
+	$form["attachment_file"] = array(
+			'#prefix' => "<label>" . t('Carica un file') . "</label>",
+			'#type' => 'managed_file',
+			'#title' => t('Seleziona ...'),
+			'#default_value' => '',
+			'#upload_location' => 'public://metadata_updfile/',// + $user->uid + '/',
+			'#progress_indicator' => true,
+			'#upload_validators' => array(
+					'file_validate_extensions' => array('pdf jpg jpeg png'),
+					// Pass the maximum file size in bytes
+					'file_validate_size' => array(20*1024*1024),
+
+					// 					'data_upload_validate_and_save' => array(),
+			),
+	);
+
+	return $form;
+}
+
+/**
+ * Return datainfo form.
+ * @param array Nested array of form elements that comprise the form.
+ * @param array A keyed array containing the current state of the form. The arguments that drupal_get_form()
+ *              was originally called with are available in the array $form_state['build_info']['args'].
+ * @return array The form array.
+ */
+function metadata_datainfo_form($form, &$form_state) {
+	$form = array();
+	
+	$form['md-datainfo'] = array(
+			'#type' => 'container',
+			'#attributes' => array(
+				'id' => 'md-datainfo-container',
+				'style' => 'display: block;',		
+			),
+	);
+	
+	$form['md-datainfo']['data-url'] = array(
+			'#type' => 'hidden',
+			'#attributes' => array(
+				'id' => 'tb-odata-url',
+			),
+	);
+	
+	$form['md-datainfo']['file_format'] = array(
+			'#type' => 'hidden',
+			'#attributes' => array(
+					'id' => 'cb-file-format',
+			),
+	);
+	
+	$form['md-datainfo']['data-alphanumeric'] = array(
+			'#type' => 'checkbox',
+			'#attributes' => array(
+					'id' => 'cb-type-alphanumeric',
+					'style' => 'display:none;'
+			),
+	);
+	
+	$form['md-datainfo']['data-geographic'] = array(
+			'#type' => 'checkbox',
+			'#attributes' => array(
+					'id' => 'cb-type-geographic',
+					'style' => 'display:none;'
+			),
+			
+	);
+	
+	$form['md-datainfo']['structured_data'] = array(
+			'#type' => 'checkbox',
+			'#attributes' => array(
+					'id' => 'cb-type-structured',
+					'style' => 'display:none;'
+			),
+	);
+		
+	$form['md-datainfo']['raw_data'] = array(
+			'#type' => 'checkbox',
+			'#attributes' => array(
+					'id' => 'cb-type-raw',
+					'style' => 'display:none;'
+			),
+	);
+	
+	$form['viewer-selector']['table'] = array(
+			'#type' => 'checkbox',
+			'#title' => t('Tabella'),
+			'#prefix' => '<div id="cb-viewer-table-container" style="display:none;">',
+			'#suffix' => '</div>',
+			'#attributes' => array(
+					'id' => 'cb-viewer-table',
+			),
+			'#return_value' => 'hasGrid',
+	);
+
+	$form['viewer-selector']['2dmap'] = array(
+			'#type' => 'checkbox',
+			'#title' => t('Mappa'),
+			'#prefix' => '<div id="cb-viewer-map2d-container" style="display:none;">',
+			'#suffix' => '</div>',
+			'#attributes' => array(
+					'id' => 'cb-viewer-map2d',
+			),
+			'#return_value' => 'has2DMap',
+	);
+	
+	$form['viewer-selector']['3dmap'] = array(
+			'#type' => 'checkbox',
+			'#title' => t('Mappa 3D'),
+			'#prefix' => '<div id="cb-viewer-map3d-container" style="display:none;">',
+			'#suffix' => '</div>',
+			'#attributes' => array(
+					'id' => 'cb-viewer-map3d',
+			),
+			'#return_value' => 'has3DMap',
+	);
+	
+	$form['viewer-selector']['graph'] = array(
+			'#type' => 'checkbox',
+			'#title' => t('Grafico'),
+			'#prefix' => '<div id="cb-viewer-graph-container" style="display:none;">',
+			'#suffix' => '</div>',
+			'#attributes' => array(
+					'id' => 'cb-viewer-graph',
+			),
+			'#return_value' => 'hasChart',
+			
+	);
+	
+	return $form;
+}
+
+/**
+ * Create a metadata download form. 
+ * 
+ * @param array Nested array of form elements that comprise the form.
+ * @param array A keyed array containing the current state of the form. The arguments that drupal_get_form()
+ *              was originally called with are available in the array $form_state['build_info']['args'].
+ * @return array The form array.
+ */
+function metadata_download_form($form, &$form_state) {
+	$metadata_module = drupal_get_path('module', 'metadata');
+	
+	$form['main'] = array(
+				'#type' => 'container',
+				'#attached' => array(
+						'js' => array(
+								$metadata_module . '/js/ui/jquery.ui.position.min.js',
+								$metadata_module . '/js/ui/jquery.ui.mouse.min.js',
+								$metadata_module . '/js/ui/jquery.ui.draggable.min.js',
+								$metadata_module . '/js/ui/jquery.ui.resizable.min.js',
+								$metadata_module . '/js/ui/jquery.ui.dialog.min.js',
+								$metadata_module . '/js/metadata.download.manager.js',
+								),
+						),
+			);
+	
+	$form['main']['export_type'] = array(
+			'#type' => 'radios',
+			'#title' => t('Formato'),
+			'#prefix' => '<div style="display:none;">',
+			'#options' => array(
+					'csv' => t('CSV'),
+					'atom' => t('XML/ATOM'),
+					'json' => t('JSON'),
+					'odata' => t('OData'),
+					'fid' => t('Allegato'),
+					'lod' => t('RDF/XML'),
+					),
+			'#suffix' => '</div>',
+// 			'#required' => true,
+			'#default_value' => 'csv',
+	);
+	$licenses = metadata_get_licenses();
+	$img_license = '';
+	foreach ($form_state['metadata_license'] as $key => $l) {
+		if(isset($l)) {
+			;
+			$img_license .= '<a rel="nofollow" href=' . $licenses[$l->name]['link'] . ' target="_blank">' .
+				theme_image(array( 
+					'path' => '/'.$metadata_module.'/img/licences/' . $licenses[$l->name]['logo'],
+					'alt' => $l->name,
+					'title' => $l->name,
+					'attributes' => array(),
+				)) . '</a>';
+		}
+	}
+	$dataProvidedBy = t('Dati forniti da ') . '<span id="mdauthor">' . $form_state['author'] . '</span>' . t(' con licenza:') . $img_license;
+	
+	$form['main']['license'] = array(
+		'#type' => 'checkbox',
+		'#title' => t('Dichiaro di aver letto e accettato le condizioni di utilizzo del dato.'),
+// 		'#description' => t('Accetta le condizioni di utilizzo del dato.'),
+		'#required' => true,
+		'#default_value' => null,
+		'#prefix' => "<div id='license-container'>$dataProvidedBy</div>",
+	);
+	
+	$form['main']['mid'] = array(
+		'#type' => 'hidden',
+		'#value' => $form_state['attachments'][0],
+	);
+	
+	$form['main']['nid'] = array(
+			'#type' => 'hidden',
+			'#value' => $form_state['nid'],
+	);
+	
+	$form['main']['fid'] = array(
+			'#type' => 'hidden',
+			'#value' => $form_state['fid'],
+	);
+	
+	$form['main']['download_captcha'] = array (
+			'#type' => 'captcha',
+			'#captcha_type' => 'recaptcha/reCAPTCHA',
+			);
+
+	$form['main']['download'] = array(
+			'#type' => 'submit',
+			'#value' => t('Download'),
+	);
+	
+	return $form;
+}
+
+/**
+ * Download form validation.
+ * 
+ * @param array Nested array of form elements that comprise the form.
+ * @param array A keyed array containing the current state of the form. The arguments that drupal_get_form()
+ *              was originally called with are available in the array $form_state['build_info']['args'].
+ */
+function metadata_download_form_validate($form, $form_state) { 
+	$id = isset($form_state['values']['mid']) ? $form_state['values']['mid'] : -1;
+	$fid = isset($form_state['values']['fid']) ? $form_state['values']['fid'] : -1;
+ 	if($id<0 && $fid<0)
+		form_set_error('metadata_download_form', t('Allegato non trovato, non è stato possibile completare il download.'));
+}
+
+/**
+ * Download form submit handler.
+ * 
+ * @param array Nested array of form elements that comprise the form.
+ * @param array A keyed array containing the current state of the form. The arguments that drupal_get_form()
+ *              was originally called with are available in the array $form_state['build_info']['args'].
+ */
+function metadata_download_form_submit($form, $form_state) {
+	$id = isset($form_state['values']['mid']) ? $form_state['values']['mid'] : null;
+	$out_format = isset($form_state['values']['export_type']) ? $form_state['values']['export_type'] : 'csv';
+	$nid = isset($form_state['values']['nid']) ? $form_state['values']['nid'] : -1;
+	$ext = array(
+			'csv' => 'csv',
+			'atom' => 'xml',
+			'json' => 'json',
+			'odata' => 'xml',
+			'fid' => 'csv', // default
+			'lod' => 'zip',
+	);
+	
+	$file_info = false; 
+	$error_message;
+	
+	// get odata services
+	$odata_services = MetadataHelper::get_services()->fetchAllAssoc('service_name');
+	
+	if($out_format=='csv') {
+		// ODATA_PROXY/ExportCSV?uid='UID'&$format=json Proxy.svc/ExportCSV?uid='909c9097-0456-4512-93fb-292800447679@datiopen'&$format=json
+		// is valid service config?
+		if(!( isset($odata_services['ODATA4J_SERVICE']) &&
+				isset($odata_services['ODATA4J_SERVICE']->service_url) &&
+				!empty($odata_services['ODATA4J_SERVICE']->service_url)) ) {
+		
+			$file_info = false;
+			$error_message = t('Servizio download non trovato.');
+		}
+		else {
+			// language detection
+			$lang = 'it-IT';
+			try {
+				$langcode = explode(";", $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+				$langcode = explode(",", $langcode['0']);
+				$lang = $langcode['0'];
+			} catch (Exception $e) {
+				// default language 
+			}
+			// call odata service - ODATA4J_SERVICEMdData...
+			$result = drupal_http_request($odata_services['ODATA4J_SERVICE']->service_url."ExportCSV?uid='$id'&\$format=json&lang='".$lang."'");
+			
+			if($result->code != 200) {
+				$file_info = false;
+				$error_message = t('Creazione report fallita: il servizio non risponde. Riprovare in un secondo momento o contattare l\'amministratore.');
+			} else {
+				// read responce data
+				$obj_result = json_decode($result->data);
+				if(isset($obj_result) && isset($obj_result->d) && isset($obj_result->d->url)) {
+					$export_url = $obj_result->d->url;
+					$file_info = new stdClass();
+					$file_info->uri = $export_url;
+				}
+				else {
+					$file_info = false;
+					$error_message = t('Creazione report fallita: impossibile leggere il file. Riprovare in un secondo momento o contattare l\'amministratore.');
+				}
+			}
+		}
+	}
+	else if($out_format=='fid') {
+		
+		// user uploaded file identifier exists?
+		if(isset($form_state['values']['fid']) && $form_state['values']['fid']>=0) {
+			$fid =  $form_state['values']['fid'];
+		}
+		else {
+			$file_info=false;
+			$fid = NULL;
+			$error_message = t('Il dato non &egrave; pi&ugrave; disponibile nel formato originale.');
+		}
+		
+		if(!is_null($fid)) {
+			list( $metadata_uid, $local, $system_uid, $system_url) = FederationHelper::getMetadataInfo($nid);
+			
+			if($local) {
+				// user uploaded file exists?
+				if(isset($form_state['values']['fid']) && $form_state['values']['fid']>=0) {
+					$fid =  $form_state['values']['fid'];
+					// load file object
+					$file_info = file_load($fid);
+					if($file_info==false) {
+						$error_message = t('Errore salvando l\'export.');
+					}
+					
+					// get file extension by attach table
+					$file_ext = db_select('attach', 'A')
+						->fields('A', array('file_format'))
+						->condition('A.fid', $fid, '=')
+						->execute()
+						->fetchField();
+					
+					// set file extension
+					$ext[$out_format] = $file_ext;
+				}
+			}
+			else {
+				$hash = FederationHelper::getAttachHash($metadata_uid, $fid, $system_uid); 
+				
+				if(isset($hash) && !empty($hash) && isset($system_url)) {
+					$post_data = http_build_query(array('mid'=>$metadata_uid, 'fid'=>$fid, 'h'=>$hash));
+					// 			output request results
+					// call federated_download service
+					$result = drupal_http_request($system_url."?q=federated_download", 
+												array(	'method' => 'POST', 
+													 	'data' => $post_data,
+														'headers' => array('Content-Type' => 'application/x-www-form-urlencoded')
+												));
+					
+					if(!isset($result->error)) {
+						// save output file
+						$file_info = file_save_data($result->data);
+					}
+					else {
+						$file_info = false;
+						$error_message = t('Errore salvando l\'export.');
+					}
+				}
+				else {
+					$file_info=false;
+					$error_message = t('Il file richiesto non esiste.');
+				}
+			}
+		}
+	}
+	else if($out_format=='lod') {
+		// is valid service config?
+		if(!( isset($odata_services['ODATA4J_SERVICE']) &&
+				isset($odata_services['ODATA4J_SERVICE']->service_url) &&
+				!empty($odata_services['ODATA4J_SERVICE']->service_url)) ) {
+		
+			$file_info = false;
+			$error_message = t('Servizio download non trovato.');
+		}
+		else {
+		
+			// call odata service - ODATA4J_SERVICEMdData...
+			$result = drupal_http_request($odata_services['ODATA4J_SERVICE']->service_url."ExportRDF?uid='$id'&outformat='RDF/XML'&\$format=json");
+			if($result->code != 200) {
+				$file_info = false;
+				$error_message = t('Creazione report fallita: il servizio non risponde. Riprovare in un secondo momento o contattare l\'amministratore.');
+			} else {
+				// read responce data
+				$obj_result = json_decode($result->data);
+				if(isset($obj_result) && isset($obj_result->d) && isset($obj_result->d->url)) {
+					$export_url = $obj_result->d->url;
+					$file_info = new stdClass();
+					$file_info->uri = $export_url;
+				}
+				else {
+					$file_info = false;
+					$error_message = t('Creazione report fallita: impossibile leggere il file. Riprovare in un secondo momento o contattare l\'amministratore.');
+				}
+			}
+		}
+	}
+	else if($out_format=='odata') {
+		$form_state['redirect'] = current_path()."/$id";
+		drupal_redirect_form($form_state);
+		return $output_url;
+	}
+	else {
+		
+		// is valid service config?
+		if(!( isset($odata_services['ODATA4J_SERVICE']) &&
+				isset($odata_services['ODATA4J_SERVICE']->service_url) &&
+				!empty($odata_services['ODATA4J_SERVICE']->service_url)) ) {
+		
+			$file_info=false;
+			$error_message = t('Servizio download non trovato.');
+		}
+		else {
+			$url_format = $out_format=='odata' ? '' :  '?$format=' . $out_format;
+			
+			// call odata service - ODATA4J_SERVICEMdData...
+			$result = drupal_http_request($odata_services['ODATA4J_SERVICE']->service_url."MdData('$id')/DataRows$url_format");
+			
+			if(!isset($result->error)) {
+				// save output file
+				$file_info = file_save_data($result->data);
+			}
+			else {
+				$file_info = false;
+				$error_message = t('Errore salvando l\'export.');
+			}
+		}
+	}
+	
+	// if no error
+	if($file_info) {
+		if(isset($file_info->uri) && (file_exists($file_info->uri) || $out_format=='csv' || $out_format=='lod')) {
+			// add download event.
+			_metadata_add_event(TableMetadataEvents::DOWNLOAD_EVTTYPE, $nid);
+			$node = node_load($nid);
+			
+			// prepare output header
+			if($out_format=='csv'){
+				drupal_add_http_header("Content-Encoding", "ISO-8859-1");
+				drupal_add_http_header("Content-type", "application/csv; charset=ISO-8859-1");
+			}else{
+				drupal_add_http_header("Content-type", "text/plain");//"application/force-download"
+			}			
+			drupal_add_http_header("Cache-Control", 'no-cache');
+			drupal_add_http_header("Content-disposition", "attachment; filename=\"".$node->identifier . '.' . $ext[$out_format] . "\"");
+		
+			// clean output
+			$out = ob_get_clean();
+			ob_clean();
+			flush();
+			// write new output
+			$readed = readfile($file_info->uri);
+			if($readed==false) {
+				echo t("Creazione dell'export fallita.");
+			}
+			exit;
+		}
+		else {
+			$error_message = t('Impossibile leggere il file.');
+		}
+	}
+	// add event
+	if($nid>0)
+		_metadata_add_event(TableMetadataEvents::DOWNLOAD_EVTTYPE, $nid);
+	
+	if(!isset($error_message) ? true : empty($error_message)) {
+		// default error message
+		$error_message = t('Errore nella generazione dell\'export.');
+	}	
+		
+	// error -> set message
+	drupal_set_message($error_message, 'error');
+}
+
+/**
+ * Metatada creation: data file upload validation
+ * 
+ * @param object $upd_file
+ * @return true on success, false otherwise.
+ */
+function data_upload_validate_and_save($upd_file) {
+	$file_ext = pathinfo($upd_file->filename, PATHINFO_EXTENSION);
+	$error = false;
+	
+	// se è un'archivio verifico se contiene i file necessari
+	if( strtoupper($file_ext)==='ZIP') {
+		$zip = new ZipArchive();
+		$res = $zip->open($upd_file->uri);
+		// unzip
+		if ($res === TRUE) {
+			$directory = $upd_file->destination . '_archive/';
+			if($zip->extractTo($directory)) {
+				$files = scandir($directory);
+				$needed = array(
+						'.shp' => false, 
+						'.dbf' => false, 
+						'.shx' => false, 
+						'.prj' => false
+				);
+				
+				// scorre i file dell'archivio e verifica se contiene i file necessari
+				foreach ($files as $f) {
+					if(preg_match('/\.shp$/', $f)==1)
+						$needed['.shp'] = true;
+					if(preg_match('/\.dbf$/', $f)==1)
+						$needed['.dbf'] = true;
+					if(preg_match('/\.shx$/', $f)==1)
+						$needed['.shx'] = true;
+					if(preg_match('/\.prj$/', $f)==1)
+						$needed['.prj'] = true;
+				}
+				
+				// in caso di file mancanti segnala il problema al client.
+				$error_message = '';
+				foreach ($needed as $ext => $ok) {
+					if(!$ok)
+						$error_message .= t('Struttura shapefile errata: file ' . $ext . ' mancante.' );
+				}
+				if (!empty($error_message)) {
+					form_set_error('data_file', $error_message);
+					$error=true;
+				}
+				
+				
+				$zip->close();
+			}
+			else {
+				form_set_error('metadata_node_form', $error_message);
+				$error=true;
+			}
+		} else {
+			// errore di lettura archivio
+			$error_message = '';
+			$error_type = 'Errore generico';
+			switch ($res) {
+				// Zip archive inconsistent.
+				case ZIPARCHIVE::ER_INCONS:
+				case ZIPARCHIVE::ER_SEEK:
+				case ZIPARCHIVE::ER_READ:
+				case ZIPARCHIVE::ER_NOZIP:
+				case ZIPARCHIVE::ER_MEMORY:
+					$error_message = t('Non è stato possibile leggere l\'archivio; verificare che non sia danneggiato.');
+					$error_type = $res;
+				break;
+				case ZIPARCHIVE::ER_NOENT:
+				case ZIPARCHIVE::ER_EXISTS:
+				case ZIPARCHIVE::ER_OPEN:
+				case ZIPARCHIVE::ER_NOZIP:
+					$error_message = t('Problemi nel trasferimento del file, riprovare.');
+					$error_type = $res;
+				default:
+					;
+				break;
+			}
+			// set form error
+			form_set_error('metadata_node_form', $error_message);
+			$error=true;
+		}
+		
+	}
+	
+	return !$error;	
+}
+
+/**
+ * Template Catalog preprocess function.
+ * @param array $variables
+ */
+function template_preprocess_catalog(&$variables) {
+	$mdcount_by_term = MetadataHelper::get_metadatacount_by_term();
+	$js_obj = '';
+	$js_obj_author = '';
+	$first = true;
+	$first_author = true;
+	foreach ($mdcount_by_term as $row) {
+		if($row->type=='taxonomy') {
+			$js_obj .= $first ? '' : ', ';  
+			$js_obj .= $row->tid . ' : ' . $row->count ;
+			$first = false;
+		}
+		else if($row->type=='author') {
+			$js_obj_author .= $first_author ? '' : ', ';
+			$js_obj_author .= $row->tid . ' : ' . $row->count ;
+			$first_author = false;
+		}		
+	}
+	
+	$js_obj_admin = '';
+	$first = true;
+	$mdcount_by_status = MetadataHelper::get_metadatacount_by_status();
+	foreach ($mdcount_by_status as $row) {
+		$js_obj_admin .= $first ? '' : ', ';
+		$js_obj_admin .= $row->type . ' : ' . $row->tot ;
+		$first=false;
+	}
+	
+	$variables['mdcount_by_term'] = "{ term: { $js_obj }, author: { $js_obj_author }, admin: { $js_obj_admin } }";
+}
+
+/**
+ * The user's account information is being displayed.
+ * The module should format its custom additions for display and add them 
+ * to the $account->content array.
+ * hook_user_view implementation.
+ * 
+ * @param object $account The user object on which the operation is being performed
+ * @param string $view_mode View mode, e.g. 'full'.
+ * @param string $langcode The language code used for rendering.
+ */
+function metadata_user_view($account, $view_mode, $langcode) {
+	
+	if($view_mode=='full') {
+		$account->content['metadata'] =  array(
+			'#theme' => 'metadata_user_profile_items',
+			'#title' => t('Attivit&agrave utente'),
+			'#account' => $account,
+			'#weight' => 20,
+		);
+	}
+}
+
+/**
+ * Template preprocess.
+ * 
+ * @param array $variables
+ */
+function template_preprocess_metadata_user_profile_items(&$variables) {
+	if(is_null($variables['activity'])) {
+		if(isset($variables['account'])) {
+			$variables['activity'] = array(
+				'created' => TableMetadataEvents::getMetadataCreationEvent($variables['account']->uid),
+				'voted' => MetadataHelper::get_metadata_owner_votecount($variables['account']->uid),
+				'relevance' => TableMetadataEvents::getWeekRelevance($variables['account']->uid),
+			);
+		}
+	}
+}
+
+/**
+ * Check metadata status and visibility if user isn't administartor or author.
+ * hook_node_access impementation.
+ * 
+ * @param stdClass $node Either a node object or the machine name of the content type on which to perform the access check.
+ * @param string $op The operation to be performed. Possible values:
+ * 				- "create"
+ * 				- "delete"
+ * 				- "update"
+ * 				- "view"
+ * @return string return: 
+ * 			- NODE_ACCESS_ALLOW: if the operation is to be allowed.
+ * 			- NODE_ACCESS_DENY: if the operation is to be denied.
+ * 			- NODE_ACCESS_IGNORE: to not affect this operation at all.
+ */
+function metadata_node_access($node, $op) {
+	global $user; // current user
+	$can_access = NODE_ACCESS_ALLOW;
+	if(strcmp($op, 'view')==0 && is_object($node) && isset($node->type) && strcmp($node->type, MODULE)==0) {
+		if($node->uid!=$user->uid && 
+			( $node->md_status!=TableMetadata::APPROVED || $node->md_visibility==TableMetadata::HIDDEN) ) {
+			$can_access = NODE_ACCESS_DENY;
+		}
+		
+		return $can_access;
+	}
+}
+
+/**
+ * Prepare a message based on parameters; called from drupal_mail().
+ * hook_mail implementation
+ * 
+ * @param string $key An identifier of the mail.
+ * @param array $message An array to be filled in.
+ * @param array $params An array of parameters supplied by the caller of drupal_mail().
+ * 
+ * @see hook_mail
+ */
+function metadata_mail($key, &$message, $params) {
+	switch ($key) {
+		case 'edit_mail':
+			$message['subject'] = $params['subject'];
+			$message['body'][] = $params['body'];
+		;
+		break;
+		
+		default:
+			;
+		break;
+	}
+}
+
+/**
+ * Act on taxonomy terms when updated.
+ * Modules implementing this hook can act on the term object when updated.
+ * 
+ * @param stdClass $term A taxonomy term object.
+ * 
+ * @see hook_taxonomy_term_update
+ */
+function metadata_taxonomy_term_update($term) {
+	try {
+		// update alias
+		db_query('select * from create_taxonomy_aliases();');
+	}
+	catch (Exception $ex) {
+		watchdog_exception('Metadata', $ex);
+	}
+}
+
+/**
+ * Respond to the deletion of taxonomy terms.
+ * Modules implementing this hook can respond to the deletion of taxonomy terms from the database.
+ * 
+ * @param stdClass $term A taxonomy term object.
+ * 
+ * @see hook_taxonomy_term_delete
+ */
+function metadata_taxonomy_term_delete($term) {
+	try {
+		// update alias
+		db_query('select * from create_taxonomy_aliases();');
+		
+		
+	}
+	catch (Exception $ex) {
+		watchdog_exception('Metadata', $ex);
+	}
+}
+
+/**
+ * Act on taxonomy terms when inserted.
+ * Modules implementing this hook can act on the term object when saved to the database.
+ * @param stdClass $term A taxonomy term object.
+ * 
+ * @see hook_taxonomy_term_insert
+ */
+function metadata_taxonomy_term_insert($term) {
+	try {
+		// update alias
+		db_query('select * from create_taxonomy_aliases();');
+	}
+	catch (Exception $ex) {
+		watchdog_exception('Metadata', $ex);
+	}
+}

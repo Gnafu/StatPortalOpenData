@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Use this file to deploy some handlers/chains and services      --><!-- Two ways to do this:                                           --><!--   java org.apache.axis.client.AdminClient deploy.wsdd          --><!--      after the axis server is running                          --><!-- or                                                             --><!--   java org.apache.axis.utils.Admin client|server deploy.wsdd   --><!--      from the same directory that the Axis engine runs         --><deployment xmlns="http://xml.apache.org/axis/wsdd/" xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+  <!-- Services from WSEtlService WSDL service -->
+
+  <service name="WSEtl" provider="java:RPC" style="wrapped" use="literal">
+      <parameter name="wsdlTargetNamespace" value="http://etl.odata.statportal.sister.it"/>
+      <parameter name="wsdlServiceElement" value="WSEtlService"/>
+      <parameter name="schemaQualified" value="http://exchange.etl.odata.statportal.sister.it,http://etl.odata.statportal.sister.it"/>
+      <parameter name="wsdlServicePort" value="WSEtl"/>
+      <parameter name="className" value="it.sister.statportal.odata.etl.WSEtl"/>
+      <parameter name="wsdlPortType" value="WSEtl"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation xmlns:operNS="http://etl.odata.statportal.sister.it" xmlns:retNS="http://etl.odata.statportal.sister.it" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getAliases" qname="operNS:getAliases" returnQName="retNS:getAliasesReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:dataUid" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.odata.statportal.sister.it" xmlns:retNS="http://etl.odata.statportal.sister.it" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getWarnings" qname="operNS:getWarnings" returnQName="retNS:getWarningsReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:filePath" type="tns:string"/>
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:dimensionInfoCollection" type="tns:string"/>
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:measureInfoCollection" type="tns:string"/>
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:genericColumnInfoCollection" type="tns:string"/>
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:extraArguments" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.odata.statportal.sister.it" xmlns:retNS="http://etl.odata.statportal.sister.it" xmlns:rtns="http://exchange.etl.odata.statportal.sister.it" name="deleteData" qname="operNS:deleteData" returnQName="retNS:deleteDataReturn" returnType="rtns:DeleteDataResult" soapAction="">
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:dataUid" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.odata.statportal.sister.it" xmlns:retNS="http://etl.odata.statportal.sister.it" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="readConfig" qname="operNS:readConfig" returnQName="retNS:readConfigReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:key" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.odata.statportal.sister.it" xmlns:retNS="http://etl.odata.statportal.sister.it" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getDimDescription" qname="operNS:getDimDescription" returnQName="retNS:getDimDescriptionReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:dataDimId" type="tns:int"/>
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:code" type="tns:int"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.odata.statportal.sister.it" xmlns:retNS="http://etl.odata.statportal.sister.it" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="extractInfo" qname="operNS:extractInfo" returnQName="retNS:extractInfoReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:filePath" type="tns:string"/>
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:extraArguments" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.odata.statportal.sister.it" xmlns:retNS="http://etl.odata.statportal.sister.it" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="verifyUniqueness" qname="operNS:verifyUniqueness" returnQName="retNS:verifyUniquenessReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:filePath" type="tns:string"/>
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:columnName" type="tns:string"/>
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:extraArguments" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.odata.statportal.sister.it" xmlns:retNS="http://etl.odata.statportal.sister.it" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="checkConfiguration" qname="operNS:checkConfiguration" returnQName="retNS:checkConfigurationReturn" returnType="rtns:int" soapAction="">
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:name" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.odata.statportal.sister.it" xmlns:retNS="http://etl.odata.statportal.sister.it" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="importData" qname="operNS:importData" returnQName="retNS:importDataReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:filePath" type="tns:string"/>
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:dataInfo" type="tns:string"/>
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:dimensionInfoCollection" type="tns:string"/>
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:measureInfoCollection" type="tns:string"/>
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:genericColumnInfoCollection" type="tns:string"/>
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:extraArguments" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.odata.statportal.sister.it" xmlns:retNS="http://etl.odata.statportal.sister.it" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="setAliases" qname="operNS:setAliases" returnQName="retNS:setAliasesReturn" returnType="rtns:boolean" soapAction="">
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:dataUid" type="tns:string"/>
+        <parameter xmlns:pns="http://etl.odata.statportal.sister.it" xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pns:aliases" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.odata.statportal.sister.it" xmlns:retNS="http://etl.odata.statportal.sister.it" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getMaxScanningRecords" qname="operNS:getMaxScanningRecords" returnQName="retNS:getMaxScanningRecordsReturn" returnType="rtns:int" soapAction="">
+      </operation>
+      <operation xmlns:operNS="http://etl.odata.statportal.sister.it" xmlns:retNS="http://etl.odata.statportal.sister.it" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getMaxVerifyRecords" qname="operNS:getMaxVerifyRecords" returnQName="retNS:getMaxVerifyRecordsReturn" returnType="rtns:int" soapAction="">
+      </operation>
+      <parameter name="allowedMethods" value="setAliases getWarnings verifyUniqueness importData deleteData getMaxVerifyRecords getAliases getDimDescription extractInfo getMaxScanningRecords checkConfiguration readConfig"/>
+
+      <typeMapping xmlns:ns="http://exchange.etl.odata.statportal.sister.it" qname="ns:DeleteDataResult" type="java:it.sister.statportal.odata.etl.exchange.DeleteDataResult" serializer="org.apache.axis.encoding.ser.BeanSerializerFactory" deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory" encodingStyle=""/>
+  </service>
+</deployment>

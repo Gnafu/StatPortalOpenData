@@ -1,0 +1,30 @@
+name = StatpPortal - odata
+description = Stat Portal - OpenData Modules.
+package = Stat Portal - OpenData
+core = 7.x
+
+; Drupal 7 allows you to add CSS files in the module's .info file if it should be added on every page, just like theme .info files do. Here is an example from the node module's .info file:
+; stylesheets[all][] = node.css
+
+
+; scripts (Optional)
+; You can now add Javascript in the module's .info file if it should be added on every page. This allows Javascript to be aggregated in an optimal way, and is the preferred method of adding Javascript that most visitors will need on a typical site visit:
+; scripts[] = somescript.js
+
+
+; files (Optional)
+; Drupal now supports a dynamic-loading code registry. To support it, all modules must now declare any code files containing class or interface declarations in the .info file, like so:
+;files[] = example.test
+
+
+; dependencies (Optional)
+; An array of other modules that your module requires
+; dependencies[] = taxonomy (version)
+; dependencies[] = comment
+
+
+version = "1.0" 
+core = "7.x"
+project = "spodata"
+
+

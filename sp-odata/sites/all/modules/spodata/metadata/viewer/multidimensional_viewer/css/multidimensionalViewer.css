@@ -1,0 +1,118 @@
+body {
+font-family:'segoe UI';
+}
+.aggregationFun {
+visibility:hidden;
+margin-top: 4px;
+float: right;
+}
+/*
+.button {
+width:80px;
+text-align:center;
+padding: 2.5px 3px 3px 3px;
+background-color:#F0F0F0;
+border:1px solid #DEDEDE;
+border-top:1px solid #EEE;
+border-left:1px solid #EEE;
+cursor:pointer;
+margin-top:15px;
+}
+*/
+.fieldFilter {
+background-color:#CCCCCC;
+background:#CCCCCC;
+}
+/*
+div#table-viewer .ui-widget-content .alernateRow{
+background:whiteSmoke;
+}
+*/
+#controllerContainer{
+	float:right;
+}
+
+#list{
+	font-size: 11px;
+}
+
+#table-viewer .button:hover{
+/*
+background-color: #EEE;
+border: 1px solid #CCC;
+*/
+
+	background-color: #EDEDED;
+	border: 1px solid gray;
+	color: #2E6E9E;
+	
+font-size: 12px;
+cursor: pointer;
+}
+
+
+#table-viewer .button {
+	/*
+	BUTTON GRAY
+	background-color: #DDD;
+	border: 1px solid #CCC;
+	padding: 2.5px 3px 3px 3px;
+	*/
+	background-color: whiteSmoke;
+	border: 1px solid #C5DBEC;
+	color: #2E6E9E;
+	padding: 3.5px 4px 5px 4px;
+	
+	
+	font-size: 12px;
+	font-weight: bold;
+	width:80px;
+	text-align:center;
+	
+}
+
+.multidimensionalFullScreen{	
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 9999;
+	background: white;
+	height: 100%;
+	width: 100%;
+	padding: 5px;
+}
+
+.controllerContainerFullScreen{
+	margin-right: 50px;
+}
+
+.viewer_img_button:hover{
+	cursor: pointer;
+	vertical-align: middle;
+}
+
+.viewer_img_button{
+	visibility: hidden;
+	float: right;
+	vertical-align: middle;
+}
+
+.closeFullscreen{
+	position:fixed; 
+	background:transparent; 
+	top:5px; 
+	right:5px; 
+	color:white; 
+	cursor:pointer;
+}
+
+.viewer_img_link_button{
+	float:right;
+	cursor:pointer;	
+	vertical-align: middle;
+}
+
+.alignRight{
+	text-align: right;
+}
+

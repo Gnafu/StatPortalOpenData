@@ -1,0 +1,39 @@
+FORMATTAZIONE DEI NUMERI (TIPO IL TOTALE)
+
+tot = $.fmatter.util.NumberFormat(tot,fmt);
+
+da sostituire con:
+
+try{
+	tot = StatPortalOpenData.ODataUtility.formatNumber(tot);
+}catch(Exception){
+	tot = $.fmatter.util.NumberFormat(tot,fmt);
+}
+
+
+TOOLTIP SULL'INTESTAZIONE DELLA TABELLA
+
+thead += "<div id='jqgh_"+ts.p.id+"_"+ts.p.colModel[i].name+"' "+tdc+">"+ts.p.colNames[i];
+
+da sostituire con
+
+thead += "<div title='" + ts.p.colNames[i] + "' id='jqgh_"+ts.p.id+"_"+ts.p.colModel[i].name+"' "+tdc+">"+ts.p.colNames[i];
+
+
+PROBLEMA NELLE COLONNE
+
+
+( (datatype=="xml" || datatype === "xmlstring") ? field.xmlmap || field.name : field.jsonmap || field.name );
+
+da sostituire con: 
+
+( (datatype=="xml" || datatype === "xmlstring") ? field.xmlmap || field.index : field.jsonmap || field.index );
+
+
+MIGLIORIE SULLO STILE
+
+$(thd).append("<input type='text' style='width:95%;padding:0px;' name='"+(cm.index || cm.name)+"' id='gs_"+cm.name+"' value='"+df+"'/>");
+
+da sostituire con 
+
+$(thd).append("<input type='text' style='width:80%;padding:0px;margin:4px' name='"+(cm.index || cm.name)+"' id='gs_"+cm.name+"' value='"+df+"'/>");

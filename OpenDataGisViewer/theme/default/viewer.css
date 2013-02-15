@@ -1,0 +1,342 @@
+body {
+    font-family: Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif;	
+	font-size:10px;	
+}
+
+#map{	
+	width: 100% !important;
+	height: 100% !important;
+	cursor:url(img/cursors/curIdentify.png),crosshair !important;
+}
+
+#baseMapPanel{
+	position: absolute;
+	z-index: 999;
+	right: 2px;
+	top: 2px;	
+	background: rgba(255,255,255,0.6);
+    border-radius: 4px;
+    padding: 4px;
+    width: 260px;
+}
+
+#base_maps.ui-buttonset{
+	margin-right: 0 !important;
+}
+
+div#scale_coord_box {
+	background-color: rgba(255, 255, 255, 0.6);
+	position: absolute;
+	z-index: 999;
+	text-align: center;
+	left: 300px;
+	top: 0;
+}
+
+#map_scale {
+	display: inline-block;
+	font-weight: normal;
+	padding: 4px;
+}
+
+#scale{
+	font-weight: normal;
+}
+
+#map_coordinates {
+	display: inline-block;
+	font-weight: bold;
+	padding: 4px;
+}
+
+#coord{
+	font-weight: normal;
+}
+
+#palette_colors{
+	display: block;
+}
+
+#palette_colors input{
+	vertical-align: middle;
+}
+
+#palette_colors img{
+	vertical-align: middle;
+}
+
+#sequential{
+	width: 375px;
+	max-width: 375px;
+}
+
+#multihue{
+	float: left;
+}
+#multihue2{
+	float: left;
+	padding-left: 10px;
+}
+
+#singlehue{
+	float: right;
+}
+
+#dimborder{
+	float: left;
+}
+#colborder{
+	float: left;
+	padding-left: 10px;
+}
+
+#styleborder{
+	float: left;
+	padding-left: 10px;
+}
+
+
+div#classifyParams label {display:block; margin-top:6px; font-weight: bold;} 
+div#classifyParams input.text { padding: .4em; }
+div#classifyParams fieldset { padding:0; border:0; }
+.ui-button { margin-left: -1px; }
+.ui-button-icon-only .ui-button-text { padding: 0.35em; } 
+.ui-autocomplete-input { margin: 0; padding: 0.48em 0 0.47em 0.45em; }
+div#identifyRslt table { margin: 1em 0; border-collapse: collapse; width: 100%; }
+div#identifyRslt table td, div#identifyRslt table th { border: 1px solid #eee; padding: .6em 10px; text-align: left; }
+div#feature_info_result ul.external{
+	padding:0;
+}
+div#feature_info_result li.type{
+	display: block !important;
+	padding-bottom: 10px;
+}
+
+div#feature_info_result li.attribute{
+	list-style-type: square;
+}
+
+.ui-autocomplete-category {
+		font-weight: bold;
+		padding: .2em .4em;
+		margin: .8em 0 .2em;
+		line-height: 1.5;
+	}
+
+/* Legenda */
+.varName{
+	font-weight: bold;
+}
+
+div#legendOpacityPanel{
+	position: absolute;
+	right: 0px;	
+	top: 40px;
+	z-index: 999;
+	background: rgba(255,255,255,0.6);
+    border-radius: 4px;
+    padding: 4px;	   
+    width: 260px;    
+}
+
+div#symbolPanel{
+	background: #ffffff;
+	min-height: 120px;
+    border-radius: 4px;   
+	border: 1px solid #ddd;
+	padding: 4px;
+	overflow: auto;
+}
+
+div#loadingPanel{
+	opacity: 0.5;	
+	background-color: #EEE;
+	z-index: 100;
+	top: 0;
+	left: 0;	
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+div#legendPanel{
+	background: #ffffff;
+	min-height: 50px;
+    border-radius: 4px;   
+	border: 1px solid #ddd;
+	padding: 4px;
+	overflow: auto;
+}
+
+.legendTitle{
+	font-weight: bold;
+}
+.legendItem{
+	display: inline-block;
+	padding: 1px;	
+}
+
+.legendItemSymbol{
+	width: 20px;
+	height: 20px;
+	background-color: blue;
+	float: left;	
+}
+
+.labelItem{
+	padding-top: 20px;
+}
+
+.itemLabel{
+	color: red;
+	font-weight: bold;
+}
+
+
+.legendItemLabel{
+	padding-left: 10px;
+}
+
+#legendClasses{
+	cursor:pointer;
+}
+
+.spinner {
+	position: absolute;
+	top: 28px;
+	left: 210px; /* half width of the spinner gif */ /* half height of the spinner gif */
+	text-align:center;
+	z-index:1234;
+	overflow: auto; /* width of the spinner gif */ /*hight of the spinner gif +2px to fix IE8 issue */
+	width: 31px; /* width of the spinner gif */
+	height: 33px; /*hight of the spinner gif +2px to fix IE8 issue */
+}
+
+/* Trasparenza */
+
+#opacityPanel{
+	background: #ffffff;
+	min-width: 110px;
+    border-radius: 4px;    
+    padding: 4px;
+	border: 1px solid #ddd;	
+}
+.opacityLabel{
+	float:left;
+	padding-right: 10px;
+	line-height: 10px;
+	vertical-align: middle;
+}
+
+.opacityValue{
+	padding-left: 10px;
+	line-height: 10px;
+	vertical-align: middle;
+}
+
+#slider{
+	float:left;
+	width: 60px;
+}
+
+/* Overview map */
+div#overviewPanel{
+	position: absolute;
+	right: 0px;
+	bottom: 0px;	
+	z-index: 999;
+	background:rgba(255,255,255,0.6);
+    border-radius: 4px;    
+    padding: 1px;
+    max-width: 130px;
+    min-width: 16px;
+    min-height: 16px;
+}
+
+div#overviewPanelBtnContainer {
+   	position: absolute;
+   	z-index:9999;    
+   	height: 16px;
+   	width: 16px;
+ 	cursor: pointer;  	
+}
+
+div#overviewPanelBtnContainer a {
+    display: block;
+    margin: 1px;
+    padding: 0;
+    color: white;
+    font-size: 18px;
+    font-family: Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    text-decoration: none;
+    text-align: center;
+    height: 16px;
+    width: 16px;
+    line-height: 25px;
+    background: #ffffff; /* fallback for IE - IE6 requires background shorthand*/
+    background: rgba(255, 255, 255, 0.6);
+    filter: alpha(opacity=80);    
+    background-image: url(img/nav_down_right_blue.png);
+    background-repeat: no-repeat;
+    background-position: center;
+}
+div#overviewPanelBtnContainer a:hover {
+   background: #ffffff; /* fallback for IE */
+   background: rgba(255, 255, 255, 0.6);
+   filter: alpha(opacity=100);
+   background-image: url(img/nav_down_right_blue.png);
+   background-repeat: no-repeat;
+   background-position: center;
+}
+
+div#overviewPanelBtnContainer a.closed {
+    display: block;
+    margin: 1px;
+    padding: 0;
+    color: white;
+    font-size: 18px;
+    font-family: Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    text-decoration: none;
+    text-align: center;
+    height: 16px;
+    width: 16px;
+    line-height: 25px;
+    background: #ffffff; /* fallback for IE - IE6 requires background shorthand*/
+    background: rgba(255, 255, 255, 0.6);
+    filter: alpha(opacity=80);    
+    background-image: url(img/nav_up_left_blue.png);
+    background-repeat: no-repeat;
+    background-position: center;   
+}
+div#overviewPanelBtnContainer a.closed:hover {
+   background: #ffffff; /* fallback for IE */
+   background: rgba(255, 255, 255, 0.6);
+   filter: alpha(opacity=100);
+   background-image: url(img/nav_up_left_blue.png);
+   background-repeat: no-repeat;
+   background-position: center;
+}
+
+.zoomToFeatures{
+	display: block;	
+	padding: 5px;
+}
+
+.basemap_phy {background-image:url(../img/icons/basemap_phy.jpg) !important;}
+.basemap_hyb {background-image:url(../img/icons/basemap_hyb.png) !important;}
+.basemap_sat {background-image:url(../img/icons/basemap_sat.jpg) !important;}
+.basemap_street {background-image:url(../img/icons/basemap_street.png) !important;}
+
+/*
+ * Stile classi layout
+ */
+.ui-layout-north,
+.ui-layout-center,
+.ui-layout-east,
+.ui-layout-west,
+.ui-layout-south {
+	padding:0px !important;
+	overflow:hidden !important;
+}

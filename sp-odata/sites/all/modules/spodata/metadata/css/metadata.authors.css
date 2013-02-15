@@ -1,0 +1,36 @@
+@CHARSET "ISO-8859-1";
+
+table#authors-list img {
+max-height: 60px;
+max-width: 60px;
+}
+
+#authors-list .email {
+overflow: hidden;
+max-width: 130px;
+min-width: 130px;
+}
+
+table#authors-list .author {
+min-width: 150px;
+max-width: 150px;
+}
+
+#authors-list .website {
+min-width: 120px;
+max-width: 120px;
+}
+
+.form-item.form-type-file.form-item-files-logo2.edit {
+position: absolute;
+left: 100px;
+background-color: #F4F4F4;
+}
+
+.form-item-metadata-author {
+	display: none;
+}
+
+#edit-metadata-author {
+	width: 400px;
+}

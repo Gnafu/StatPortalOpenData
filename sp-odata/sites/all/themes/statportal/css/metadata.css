@@ -1,0 +1,538 @@
+@CHARSET "ISO-8859-1";
+
+div#main .section {
+margin: 0;
+padding: 0;
+}
+
+.node-metadata.node-full {
+top: -20px;
+position: relative;
+clear: both;
+}
+
+div.social_button_container 
+{
+	float: left;
+}
+
+div.region-social-share
+{
+	position: relative;
+	float: right;
+	top: -30px;
+}
+
+#fb-root 
+{
+	display:none;
+}
+
+div#sub-title
+{
+	width: 40%;
+}
+
+div#metadata-header > #page-title,
+div#sub-title
+{
+	margin-left:75px;
+}
+
+div#metadata-header > #page-title {
+	margin-top: 5px;	
+	font-weight: normal;
+	font-size: 1.4em;
+	color: #36A;
+	text-transform:uppercase;	
+	margin-bottom:2px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+       -o-text-overflow: ellipsis;
+       -moz-binding: url('assets/xml/ellipsis.xml#ellipsis');
+}
+
+/* AGGIUNTO PER CENTRARE IMMAGINE LICENZA */
+.field-name-metadata-license > div > div {
+	margin-top: 5px;
+	text-align: center;
+}
+
+/* AGGIUNTO PER CENTRARE IMMAGINE FONTE */
+.metadata-publisher {
+	margin-top: 5px;
+	text-align: center;
+}
+
+div.tabs {
+	margin-bottom: 2px;
+}
+
+div.tabs li.active {
+	visibility: hidden;
+}
+
+div.tabs ul.primary {
+position: relative;
+float: right;
+border: none;
+background: transparent;
+top: 5px;
+}
+
+.tabs ul.primary li a {
+/*background-color: #EDEDED;
+border-color: #444;*/
+border-style: solid;
+border-width: 1px;
+border-radius: 6px;
+/*font-weight: bold;
+color:#444;*/
+}
+
+.tabs ul.primary li a:hover {
+background-color: #FAFAFA;
+color:#222;
+}
+
+.viewer_img_button {
+visibility: hidden;
+float: right;
+/*
+left: 180px;
+position: relative;
+*/
+}
+
+
+div#main-description {
+margin: 0;
+border: 0;
+padding: 0;
+border-image: initial;
+}
+
+#metadata-header > img {
+	float: left;
+	margin-right: 10px;
+	margin-bottom: 10px;
+}
+
+
+span#author-subtitle, span#lastupdate-subtitle {
+padding-left: 10px;
+padding-right: 10px;
+font-size: 11px;
+}
+
+div#main {
+margin-top: 0;
+
+/*margin-bottom: 40px;*/
+}
+
+div#main-description > div#main {
+	width: 585px;
+	display: inline-block;
+	float: left;
+	font-size:1em;
+	padding:10px;
+	background-image: none;
+}
+
+div#main > div#content {
+  width: 980px;
+ /* background-color: #F7F7F7;*/
+}
+
+div#left-column
+{
+	border-right: 1px solid #E8E8E8;
+	margin-left:5px;	
+
+}
+
+div#right-column {
+	border-left: 1px solid #E8E8E8;
+	margin-right:5px;
+}
+
+
+div#left-column
+{
+	display: inline-block;
+	float: left;
+	width: 150px;
+	height: 100%;
+	background-color: #F0F0F0;
+	padding:10px;
+}
+div#right-column
+{
+	display: inline-block;
+	float: left;
+	width: 150px;
+	height: 100%;
+	background-color: #F0F0F0;
+	padding:10px;
+	/*font-size: 0.8em;*/
+}
+
+#author-subtitle-label,
+#lastupdate-subtitle-label,
+#right-column > .field-label, 
+div#dataset-container .field .field-label,
+.field-label
+ {
+	/*font-weight: bold;
+	color: #36A;
+	font-size: 0.8em;
+	padding-top: 10px;
+	padding-bottom:3px;
+	margin-top:10px;*/
+	color: #3B3B3B;
+	font-size: 11px;
+	text-transform: uppercase;
+	font-weight: bold;
+	padding-top: 10px;
+	padding-bottom:3px;
+	margin-top:10px;
+}
+
+div.metadata-attach-counter {
+display: none;
+}
+
+#dataset-container {
+background: white;
+border: 0;
+padding: 0;
+}
+
+#dataset-container > ul.ui-tabs-nav a
+{
+	font-weight: bold;
+	padding: 0;			/*ivette*/
+	position: relative;
+	height: 100%;
+	width: 100%;
+	padding-left: 20px;
+}
+
+#dataset-container > ul.ui-tabs-nav {
+background: white;
+border-top: 0;
+border-left: 0;
+border-right: 0;
+border-bottom-color: #4D76BD;
+}
+
+
+div#dataset-container li.ui-tabs-selected {
+background: white;
+color: #4D76BD;
+
+}
+
+div#dataset-container li.ui-tabs-selected > a {
+color: #4D76BD;
+
+}
+
+
+div#author-logo-container {
+
+	float: left;
+	width: 64px;
+	height: 64px;
+	position: relative;
+
+}
+
+div#author-logo-container > a > img {
+	width: 64px;
+	height: 64px;
+	border: solid 1px silver;
+}
+
+p.note {
+	border-top: 1px solid #F4F4F4;
+}
+
+div.related-metadata > ul {
+	margin: 0;
+	padding-left: 0;
+}
+
+div.related-metadata > ul > li {
+	font-size: 0.8em;
+	list-style: none;
+	margin-bottom: 13px;
+}
+
+
+.addthis_toolbox.addthis_default_style.addthis_32x32_style {
+	margin-top: 25px;
+}
+.publisher-image{
+	height:48px;
+}
+
+.Descripton_img {
+background-image: url(../images/withe_icons/Description.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+.Comment_img {
+background-image: url(../images/withe_icons/Comment.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+.Download_img {
+background-image: url(../images/withe_icons/Download.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+.Graphics_img {
+background-image: url(../images/withe_icons/Graphics.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+.Map_img {
+background-image: url(../images/withe_icons/Map.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+.Earth_img {
+background-image: url(../images/withe_icons/Map3D.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+.Table_img {
+background-image: url(../images/withe_icons/Table.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+div.tab_metadata {
+	background-repeat: no-repeat;
+	background-position: center center;
+	width: 18px;
+	height: 18px;
+	margin: 0;
+	padding: 0;
+}
+
+
+li.ui-state-active.Descripton_img {
+background-image: url(../images/blue_icons/Description.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+li.ui-state-active.Comment_img {
+background-image: url(../images/blue_icons/Comment.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+li.ui-state-active.Download_img {
+background-image: url(../images/blue_icons/Download.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+li.ui-state-active.Graphics_img {
+background-image: url(../images/blue_icons/Graphics.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+li.ui-state-active.Map_img {
+background-image: url(../images/blue_icons/Map.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+li.ui-state-active.Earth_img {
+background-image: url(../images/blue_icons/Map3D.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+li.ui-state-active.Table_img {
+background-image: url(../images/blue_icons/Table.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+.ui-tabs .ui-tabs-nav li {
+	width: 100px;
+	height: 20px;
+	top: 2px;
+}
+
+div#dataset-container .ui-state-hover {
+border: 1px solid #36a;
+background: #ecf3ff;
+font-weight: normal;
+color: #36a;
+}
+
+div#dataset-container li.ui-state-default:hover > a {
+color: #4D76BD;
+}
+
+div#dataset-container li.ui-state-default.Descripton_img:hover {
+background-image: url(../images/blue_icons/Description.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+div#dataset-container li.ui-state-default.Comment_img:hover {
+background-image: url(../images/blue_icons/Comment.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+div#dataset-container li.ui-state-default.Download_img:hover {
+background-image: url(../images/blue_icons/Download.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+div#dataset-container li.ui-state-default.Graphics_img:hover {
+background-image: url(../images/blue_icons/Graphics.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+div#dataset-container li.ui-state-default.Map_img:hover {
+background-image: url(../images/blue_icons/Map.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+div#dataset-container li.ui-state-default.Earth_img:hover {
+background-image: url(../images/blue_icons/Map3D.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+div#dataset-container li.ui-state-default.Table_img:hover {
+background-image: url(../images/blue_icons/Table.png) !important;
+background-repeat: no-repeat !important;
+background-position: 2px 1px !important;
+}
+
+div#download-area > div {
+margin: 0 0 20px 0;
+}
+
+div#download-area a {
+	color: #333;
+	text-decoration: none;
+}
+
+div#download-area a:hover {
+	color: #000;
+	text-decoration: none;
+}
+
+div#download-area div.cool_button {
+background-color: #ddd;
+border: 1px solid #ccc;
+font-size: 12px;
+font-weight: bold;
+width:100px;
+text-align:center;
+}
+
+div#download-area div.cool_button:hover {
+background-color: #eee;
+cursor: pointer;
+}
+
+div#download-area div.type-download-description {
+	font-size: 14px;
+	text-align: justify;
+}
+
+div#left-column div.field-item {
+	line-height: 11px;
+}
+
+div#left-column div.field-name-metadata-type li {
+color: #3E6D8E;
+background-color: #E0EAF1;
+border-bottom: 1px solid #3E6D8E;
+border-right: 1px solid #7F9FB6;
+padding: 3px 4px 3px 4px;
+margin: 2px 2px 2px 0;
+text-decoration: none;
+/* font-size: 90%;*/
+/*line-height: 2.4;*/
+/*white-space: nowrap;*/
+overflow: hidden;
+text-overflow: ellipsis;
+-o-text-overflow: ellipsis;
+-moz-binding: url('assets/xml/ellipsis.xml#ellipsis');
+
+}
+
+div#left-column div.field-name-metadata-type li:hover {
+background-color: #3E6D8E;
+color: #E0EAF1;
+border-bottom: 1px solid #37607D;
+border-right: 1px solid #37607D;
+text-decoration: none;
+cursor: pointer;
+}
+
+div#left-column div.field-name-metadata-type li:hover a  {
+color: #E0EAF1;
+text-decoration: none;
+}
+
+div.captcha {
+width: 320px;
+}
+
+div.form-item-license {
+width: 320px;
+}
+
+div.download-area-form {
+width: 330px;
+}
+
+span#mdauthor {
+	font-weight: bold;
+}
+
+#download-area > iframe {
+border: none;
+width: 100%;
+height: 450px;
+}
+
+span.status, span.visibility {
+font-size: 10px;
+color: white;
+padding-bottom: 2px;
+padding-top: 2px;
+padding-left: 10px;
+background-color: #4D76BD;
+padding-right: 10px;
+}
+
+span.visibility {
+border-right: 4px solid white;
+}

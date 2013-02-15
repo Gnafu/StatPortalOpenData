@@ -1,0 +1,79 @@
+ #loadDataForm{/*width:800px;*/}
+ #loadDataForm fieldset { border:none; /*width:800px;*/ padding: 1em 0 0 0;}
+ #loadDataForm legend { font-size:16px; margin:0px; padding:0px 0px; /*color: #0074BD;*/color: black; font-weight:bold;}
+ #loadDataForm label { /*display:block;*/ margin:15px 0 5px;}
+ 
+ input[type=text], input[type=password], select { width:150px; padding:2px; border:solid 1px #CCC; border-top-color: #999;margin: 3px;}
+ 
+ /*
+ .prev, .next { background-color:#b0232a; padding:5px 10px; color:#fff; text-decoration:none;}
+ .prev:hover, .next:hover { background-color:#000; text-decoration:none;}
+ */
+ 
+ .prev, .next {
+ 	cursor: pointer;
+  	padding: 4px 17px;
+  	margin-bottom: 1em;
+  	margin-right: 1em; /* LTR */
+  	color: #5A5A5A;
+  	text-align: center;
+  	font-weight: normal;
+  	font-size: 0.9em;
+  	font-family: "Lucida Grande", Verdana, sans-serif;
+  	border: 1px solid #e4e4e4;
+  	border-bottom: 1px solid #b4b4b4;
+  	border-left-color: #d2d2d2;
+  	border-right-color: #d2d2d2;
+  	background: url(../../img/buttons.png) 0 0 repeat-x;
+  	-moz-border-radius: 20px;
+  	-webkit-border-radius: 20px;
+  	border-radius: 20px;
+ }
+ 
+  #loadDataForm a:active,  #loadDataForm a:hover {
+  	text-decoration: none;
+  }
+  
+ .prev { float:left;}
+ .next { float:right;}
+ #steps { list-style:none; width:100%; overflow:hidden; margin:0px; padding:0px;}
+ #visibleFileUpload, #visibleFileInfo, #viewerChoice{/*overflow:scroll;*/ /*min-height:450px;*/max-height:450px;width:80%;min-width:800px;}
+
+ 
+ #visibleDetailsFileInfo{
+ 	/*overflow:scroll;*/ 
+ 	/*min-height:450px;*/
+ 	max-height:450px;
+ 	margin: 3px;
+	margin: 3px;
+	padding: 3px;
+ }
+ 
+ #steps li {font-size:24px; float:left; padding:10px;color:gray;}
+ #steps li span {font-size:11px; display:block;}
+ #steps li.current { background-color: #D8E1F2; color: black; }
+ #makeWizard { background-color:#b0232a; color:#fff; padding:5px 10px; text-decoration:none; font-size:18px;}
+ #makeWizard:hover { background-color:#000;}
+ 
+ .customInfoBox{
+ 	padding: 10px;
+ 	background-color: whiteSmoke;
+ 	margin: 5px;
+ }
+ 
+ .etl-wizard-step-buttons{
+ 	padding: 10px;
+ 	clear:both;
+ 	display: none;
+ }
+ 
+ .etl-title-warnings{
+ 	font-weight: bold;
+ 	font-size: 15px;
+ }
+ 
+ #etl-button-for-warnings{
+ 	display: none;
+ 	padding: 10px;
+	margin-bottom: 10px;
+ }

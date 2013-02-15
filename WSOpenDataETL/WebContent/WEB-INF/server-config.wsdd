@@ -1,0 +1,109 @@
+<ns1:deployment xmlns="http://xml.apache.org/axis/wsdd/" xmlns:java="http://xml.apache.org/axis/wsdd/providers/java" xmlns:ns1="http://xml.apache.org/axis/wsdd/">
+ <ns1:globalConfiguration>
+  <ns1:parameter name="sendMultiRefs" value="true"/>
+  <ns1:parameter name="disablePrettyXML" value="true"/>
+  <ns1:parameter name="adminPassword" value="admin"/>
+  <ns1:parameter name="attachments.Directory" value="E:\progetti\Eclipse\.metadata\.plugins\org.eclipse.wst.server.core\tmp0\wtpwebapps\Test\WEB-INF\attachments"/>
+  <ns1:parameter name="dotNetSoapEncFix" value="true"/>
+  <ns1:parameter name="enableNamespacePrefixOptimization" value="false"/>
+  <ns1:parameter name="sendXMLDeclaration" value="true"/>
+  <ns1:parameter name="attachments.implementation" value="org.apache.axis.attachments.AttachmentsImpl"/>
+  <ns1:parameter name="sendXsiTypes" value="true"/>
+  <ns1:requestFlow>
+   <ns1:handler type="java:org.apache.axis.handlers.JWSHandler">
+    <ns1:parameter name="scope" value="session"/>
+   </ns1:handler>
+   <ns1:handler type="java:org.apache.axis.handlers.JWSHandler">
+    <ns1:parameter name="scope" value="request"/>
+    <ns1:parameter name="extension" value=".jwr"/>
+   </ns1:handler>
+  </ns1:requestFlow>
+ </ns1:globalConfiguration>
+ <ns1:handler name="URLMapper" type="java:org.apache.axis.handlers.http.URLMapper"/>
+ <ns1:handler name="LocalResponder" type="java:org.apache.axis.transport.local.LocalResponder"/>
+ <ns1:handler name="Authenticate" type="java:org.apache.axis.handlers.SimpleAuthenticationHandler"/>
+ <ns1:service name="AdminService" provider="java:MSG">
+  <ns1:parameter name="allowedMethods" value="AdminService"/>
+  <ns1:parameter name="enableRemoteAdmin" value="false"/>
+  <ns1:parameter name="className" value="org.apache.axis.utils.Admin"/>
+  <ns1:namespace>http://xml.apache.org/axis/wsdd/</ns1:namespace>
+ </ns1:service>
+ <ns1:service name="WSEtl" provider="java:RPC" style="wrapped" use="literal">
+  <ns2:operation name="getAliases" qname="ns1:getAliases" returnQName="ns1:getAliasesReturn" returnType="xsd:string" soapAction="" xmlns:ns1="http://etl.odata.statportal.sister.it" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns2="http://xml.apache.org/axis/wsdd/">
+   <ns2:parameter qname="ns1:dataUid" type="xsd:string"/>
+  </ns2:operation>
+  <ns1:operation name="getWarnings" qname="ns2:getWarnings" returnQName="ns2:getWarningsReturn" returnType="xsd:string" soapAction="" xmlns:ns2="http://etl.odata.statportal.sister.it" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <ns1:parameter qname="ns2:filePath" type="xsd:string"/>
+   <ns1:parameter qname="ns2:dimensionInfoCollection" type="xsd:string"/>
+   <ns1:parameter qname="ns2:measureInfoCollection" type="xsd:string"/>
+   <ns1:parameter qname="ns2:genericColumnInfoCollection" type="xsd:string"/>
+   <ns1:parameter qname="ns2:extraArguments" type="xsd:string"/>
+  </ns1:operation>
+  <ns1:operation name="deleteData" qname="ns3:deleteData" returnQName="ns3:deleteDataReturn" returnType="ns4:DeleteDataResult" soapAction="" xmlns:ns3="http://etl.odata.statportal.sister.it" xmlns:ns4="http://exchange.etl.odata.statportal.sister.it">
+   <ns1:parameter qname="ns3:dataUid" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+  </ns1:operation>
+  <ns1:operation name="readConfig" qname="ns5:readConfig" returnQName="ns5:readConfigReturn" returnType="xsd:string" soapAction="" xmlns:ns5="http://etl.odata.statportal.sister.it" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <ns1:parameter qname="ns5:key" type="xsd:string"/>
+  </ns1:operation>
+  <ns1:operation name="getDimDescription" qname="ns6:getDimDescription" returnQName="ns6:getDimDescriptionReturn" returnType="xsd:string" soapAction="" xmlns:ns6="http://etl.odata.statportal.sister.it" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <ns1:parameter qname="ns6:dataDimId" type="xsd:int"/>
+   <ns1:parameter qname="ns6:code" type="xsd:int"/>
+  </ns1:operation>
+  <ns1:operation name="extractInfo" qname="ns7:extractInfo" returnQName="ns7:extractInfoReturn" returnType="xsd:string" soapAction="" xmlns:ns7="http://etl.odata.statportal.sister.it" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <ns1:parameter qname="ns7:filePath" type="xsd:string"/>
+   <ns1:parameter qname="ns7:extraArguments" type="xsd:string"/>
+  </ns1:operation>
+  <ns1:operation name="verifyUniqueness" qname="ns8:verifyUniqueness" returnQName="ns8:verifyUniquenessReturn" returnType="xsd:string" soapAction="" xmlns:ns8="http://etl.odata.statportal.sister.it" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <ns1:parameter qname="ns8:filePath" type="xsd:string"/>
+   <ns1:parameter qname="ns8:columnName" type="xsd:string"/>
+   <ns1:parameter qname="ns8:extraArguments" type="xsd:string"/>
+  </ns1:operation>
+  <ns1:operation name="checkConfiguration" qname="ns9:checkConfiguration" returnQName="ns9:checkConfigurationReturn" returnType="xsd:int" soapAction="" xmlns:ns9="http://etl.odata.statportal.sister.it" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <ns1:parameter qname="ns9:name" type="xsd:string"/>
+  </ns1:operation>
+  <ns1:operation name="importData" qname="ns10:importData" returnQName="ns10:importDataReturn" returnType="xsd:string" soapAction="" xmlns:ns10="http://etl.odata.statportal.sister.it" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <ns1:parameter qname="ns10:filePath" type="xsd:string"/>
+   <ns1:parameter qname="ns10:dataInfo" type="xsd:string"/>
+   <ns1:parameter qname="ns10:dimensionInfoCollection" type="xsd:string"/>
+   <ns1:parameter qname="ns10:measureInfoCollection" type="xsd:string"/>
+   <ns1:parameter qname="ns10:genericColumnInfoCollection" type="xsd:string"/>
+   <ns1:parameter qname="ns10:extraArguments" type="xsd:string"/>
+  </ns1:operation>
+  <ns1:operation name="setAliases" qname="ns11:setAliases" returnQName="ns11:setAliasesReturn" returnType="xsd:boolean" soapAction="" xmlns:ns11="http://etl.odata.statportal.sister.it" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <ns1:parameter qname="ns11:dataUid" type="xsd:string"/>
+   <ns1:parameter qname="ns11:aliases" type="xsd:string"/>
+  </ns1:operation>
+  <ns1:operation name="getMaxScanningRecords" qname="ns12:getMaxScanningRecords" returnQName="ns12:getMaxScanningRecordsReturn" returnType="xsd:int" soapAction="" xmlns:ns12="http://etl.odata.statportal.sister.it" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+  <ns1:operation name="getMaxVerifyRecords" qname="ns13:getMaxVerifyRecords" returnQName="ns13:getMaxVerifyRecordsReturn" returnType="xsd:int" soapAction="" xmlns:ns13="http://etl.odata.statportal.sister.it" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+  <ns1:parameter name="allowedMethods" value="setAliases getWarnings verifyUniqueness importData deleteData getMaxVerifyRecords getAliases getDimDescription extractInfo getMaxScanningRecords checkConfiguration readConfig"/>
+  <ns1:parameter name="typeMappingVersion" value="1.2"/>
+  <ns1:parameter name="wsdlPortType" value="WSEtl"/>
+  <ns1:parameter name="className" value="it.sister.statportal.odata.etl.WSEtl"/>
+  <ns1:parameter name="wsdlServicePort" value="WSEtl"/>
+  <ns1:parameter name="schemaQualified" value="http://exchange.etl.odata.statportal.sister.it,http://etl.odata.statportal.sister.it"/>
+  <ns1:parameter name="wsdlTargetNamespace" value="http://etl.odata.statportal.sister.it"/>
+  <ns1:parameter name="wsdlServiceElement" value="WSEtlService"/>
+  <ns1:typeMapping deserializer="org.apache.axis.encoding.ser.BeanDeserializerFactory" encodingStyle="" qname="ns14:DeleteDataResult" serializer="org.apache.axis.encoding.ser.BeanSerializerFactory" type="java:it.sister.statportal.odata.etl.exchange.DeleteDataResult" xmlns:ns14="http://exchange.etl.odata.statportal.sister.it"/>
+ </ns1:service>
+ <ns1:service name="Version" provider="java:RPC">
+  <ns1:parameter name="allowedMethods" value="getVersion"/>
+  <ns1:parameter name="className" value="org.apache.axis.Version"/>
+ </ns1:service>
+ <ns1:transport name="http">
+  <ns1:requestFlow>
+   <ns1:handler type="URLMapper"/>
+   <ns1:handler type="java:org.apache.axis.handlers.http.HTTPAuthHandler"/>
+  </ns1:requestFlow>
+  <ns1:parameter name="qs:list" value="org.apache.axis.transport.http.QSListHandler"/>
+  <ns1:parameter name="qs:wsdl" value="org.apache.axis.transport.http.QSWSDLHandler"/>
+  <ns1:parameter name="qs.list" value="org.apache.axis.transport.http.QSListHandler"/>
+  <ns1:parameter name="qs.method" value="org.apache.axis.transport.http.QSMethodHandler"/>
+  <ns1:parameter name="qs:method" value="org.apache.axis.transport.http.QSMethodHandler"/>
+  <ns1:parameter name="qs.wsdl" value="org.apache.axis.transport.http.QSWSDLHandler"/>
+ </ns1:transport>
+ <ns1:transport name="local">
+  <ns1:responseFlow>
+   <ns1:handler type="LocalResponder"/>
+  </ns1:responseFlow>
+ </ns1:transport>
+</ns1:deployment>

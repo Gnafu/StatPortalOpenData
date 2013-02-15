@@ -1,0 +1,2213 @@
+<?php
+/**
+ * @file
+ * Install file for Metadata module.
+ *
+ * 
+ */
+require_once('metadata.config.inc');
+/**
+ * Define the current version of the database schema.
+ * Implements hook_schema.
+ * Create and return metadata schema used to add metadata tables.
+ * 
+ * @return array metadata schema  definition structure array. 
+ * 			For each element of the array, the key is a table name and the value is a table structure definition.
+ * 
+ */
+ function metadata_schema() {
+ 	// table creator
+ 	$schema['author'] = array(
+ 			'description' => 'Store metadata creator.',
+ 			'fields' => array(
+ 					'id' => array(
+ 							'type' => 'serial',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {author}.id is author PK.',
+ 					),
+ 					'vid' => array(
+ 							'type' => 'int',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'default' => 0,
+ 							'description' => 'Primary Key: The {author}.vid is author version id.',
+ 					),
+ 					'name' => array(
+ 							'type' => 'varchar',
+ 							'length' => '250',
+ 							'not null' => TRUE,
+ 							'description' => 'The {author}.name is author name'
+ 					),
+ 					'logo' => array(
+ 							'type' => 'varchar',
+ 							'length' => '250',
+ 							'not null' => TRUE,
+ 							'description' => '{author}.logo contains author logo relative path.'
+ 					),
+ 					'website' => array(
+ 							'type' => 'varchar',
+ 							'length' => '250',
+ 							'not null' => FALSE,
+ 							'description' => 'The {author}.website is author site url'
+ 	
+ 					),
+ 					'mail' => array(
+ 							'type' => 'varchar',
+ 							'length' => '250', 							
+ 							'not null' => FALSE,
+ 							'description' => 'The {creator}.mail is author email address.',
+ 					),
+ 					'uid' => array( 
+ 							'type' => 'int', 
+ 							'size' => 'big', 
+ 							'default' => NULL, 
+ 					),
+ 					'creation_date' => array( 
+ 							'type' => 'int', 
+ 							'size' => 'medium', 
+ 							'default' => NULL, 
+ 					),
+ 					'status' => array( 
+ 							'type' => 'int', 
+ 							'size' => 'small', 
+ 							'default' => 1, 
+ 					),
+ 					'uid_author' => array(
+ 							'pgsql_type' => 'uuid',
+//  						'default' => 'uuid_generate_v4()', non funziona con le pg function 
+ 							'not null' => FALSE,
+ 							'description' => 'The {author}.uid_author is unique identifier of author in local and federated system.'
+ 					),
+ 					'local' => array('type' => 'int',
+		 					'size' => 'small',	
+		 					'unsigned' => TRUE,	
+		 					'not null' => TRUE,	
+		 					'default' => 1,	
+		 					'description' => 'The {metadata}.local field'
+ 					),
+ 			),
+ 			'unique keys' => array(
+ 					'id_vid' => array('id', 'vid'),
+ 					'u_uid_author' => array('uid_author'),
+ 			),
+ 			'primary key' => array('id'),
+ 	);
+ 	
+ 	// table odata service
+ 	$schema['odata_services'] = array(
+ 			'description' => 'Store odata services info.',
+ 			'fields' => array(
+ 					'id' => array(
+ 							'type' => 'serial',
+ 							'size' => 'small',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {odata_services}.id is odata_services id.',
+ 					),
+ 					'service_name' => array(
+ 							'type' => 'varchar',
+ 							'length' => '150',
+ 							'not null' => TRUE,
+ 							'description' => 'The {odata_services}.service_name contains services name.'
+ 					),
+ 					'service_url' => array(
+ 							'type' => 'varchar',
+ 							'length' => '500',
+ 							'not null' => TRUE,
+ 							'description' => '{odata_services}.service_url contains URL of odata seriveces.'
+ 					),
+ 					'type' => array(
+ 							'type' => 'varchar',
+ 							'length' => 30,
+ 							'not null' => true,
+ 							'description' => '{odata_services}.type defines request type.'
+ 							),
+ 			),
+ 			'unique keys' => array( 
+ 					'id' => array('id', 'service_name'),
+ 			),
+ 			'primary key' => array('id'),
+ 	);
+ 	
+ 	// table metadata
+ 	$schema['metadata'] = array(
+ 			'description' => 'Store metadata',
+ 			'fields' => array(
+ 					'nid' => array(
+ 							'type' => 'int',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {metadata}.nid is node id.',
+ 							),
+ 					'vid' => array(
+ 							'type' => 'int',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'default' => 0,
+ 							'description' => 'Primary Key: The {metadata}.vid (version id) of the node.',
+ 					),
+ 					'title' => array(
+ 							'type' => 'varchar',
+ 							'length' => '200',
+ 							'not null' => TRUE,
+ 							'description' => 'The {metadata}.title Title'
+ 							),
+ 					'identifier' => array(
+ 							'type' => 'varchar',
+ 							'length' => '200',
+ 							'not null' => TRUE,
+ 							'description' => '{metadata}.identifier define url to view metadata info page.'
+ 					), 					
+ 					'description' => array(
+ 							'type' => 'text',
+ 							'size' => 'medium',
+ 							'not null' => TRUE,
+ 							'description' => 'The {metadata}.description of metadata'  
+ 					),
+ 					'id_author' => array(
+ 							'type' => 'int',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {metadata}.id_creator of the node.',
+ 					),
+		 			'id_publisher' => array(
+		 					'type' => 'int',
+		 					'size' => 'big',
+		 					'unsigned' => TRUE,
+		 					'not null' => TRUE,
+		 					'description' => 'The {metadata}.id creator of the node.',
+		 			),
+		 			'creation_date' => array(
+		 					'type' => 'int',
+		 					'not null' => TRUE,
+		 					'description' => 'The {metadata}.creation_date is creation unix timestamp of the node.',
+		 			),
+		 			'last_update' => array(
+		 					'type' => 'int',
+		 					'not null' => FALSE,
+		 					'description' => 'The {metadata}.date is last update unix timestamp of the node.',
+		 			),
+ 					'note' => array(
+ 							'type' => 'text',
+ 							'size' => 'medium',
+ 							'not null' => FALSE,
+ 					),
+ 					'status' => array(
+ 							'type' => 'int',
+ 							'size' => 'small',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'default' => 0, 							
+ 							'description' => 'The {metadata}.status of the node', 							
+ 					),
+					'fid' => array(
+							'type' => 'int',
+							'size' => 'big',
+							'unsigned' => TRUE,
+							'not null' => FALSE,
+							'description' => 'The {metadata}.fid (managed file) identifier.',
+					),
+ 					'local' => array(
+ 							'type' => 'int',
+ 							'size' => 'small',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'default' => 1,
+ 							'description' => 'The {metadata}.local field',
+ 					),
+ 					'visibility' => array( 
+ 							'type' => 'int', 
+ 							'size' => 'tiny', 
+ 							'default' => 0, 
+ 							'unsigned' => true 
+ 					),
+ 					'uid' => array(
+ 							'pgsql_type' => 'uuid',
+ 							'not null' => FALSE,
+ 							'description' => 'The {author}.uid_author is unique identifier of author in local and federated system.'
+ 					),
+ 			),
+ 			'unique keys' => array(
+ 					'nid_vid' => array('nid', 'vid'),
+ 					'vid'     => array('vid')
+ 			),
+ 			'primary key' => array('nid'),
+ 			'foreign key' => array(
+ 					'fk_metadata_node' => array(
+ 							'table' => 'node',
+ 							'columns' => array('nid' => 'nid'),
+ 							),
+ 					'fk_metadata_user' => array(
+ 							'table' => 'users',
+ 							'columns' => array('nid' => 'uid'),
+ 							),
+ 					),
+		 			'fk_metadata_author' => array(
+		 					'table' => 'author',
+		 					'columns' => array('nid' => 'id'),
+		 			),
+		 			'fk_metadata_fid_file_managed' => array(
+		 					'table' => 'file_manged',
+		 					'columns' => array('fid' => 'fid'),
+		 			),
+ 			);
+ 	// table metadata_attributes
+ 	$schema['metadata_attributes'] = array(
+ 			'description' => 'Store metadata attributes.',
+ 			'fields' => array(
+ 					'id' => array(
+ 							'type' => 'serial',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {relation}.id.',
+ 					),
+ 					'id_metadata' => array(
+ 							'type' => 'int',
+ 							'length' => 'big',
+ 							'not null' => TRUE,
+ 							'description' => 'The {relation}.id_metadata is fk metadata'
+ 					),
+ 					'has_grid' => array(
+ 							'type' => 'int',
+ 							'unsigned' => TRUE,
+ 							'size' => 'tiny',
+ 							'not null' => TRUE,
+ 							'description' => 'True if metadata has grid viewer.',
+ 							'default' => 0
+ 					),
+ 					'has_2dmap' => array(
+ 							'type' => 'int',
+ 							'unsigned' => TRUE,
+ 							'size' => 'tiny',
+ 							'not null' => TRUE,
+ 							'description' => 'True if metadata has 2D map viewer.',
+ 							'default' => 0
+ 					),
+ 					'has_3dmap' => array(
+ 							'type' => 'int',
+ 							'unsigned' => TRUE,
+ 							'size' => 'tiny',
+ 							'not null' => TRUE,
+ 							'description' => 'True if metadata has 3D map viewer.',
+ 							'default' => 0
+ 					),
+ 					'has_chart' => array(
+ 							'type' => 'int',
+ 							'unsigned' => TRUE,
+ 							'size' => 'tiny',
+ 							'not null' => TRUE,
+ 							'description' => 'True if metadata has chart viewer.',
+ 							'default' => 0
+ 					),
+ 			),
+ 			'primary key' => array('id'),
+ 			'foreign key' => array(
+ 					'fk_attributes_metadata' => array(
+ 							'table' => 'metadata',
+ 							'columns' => array('id' => 'nid'),
+ 					),
+ 			),
+ 	);
+ 	// table attach
+ 	$schema['relation'] = array(
+ 			'description' => 'Store metadata relation',
+ 			'fields' => array(
+ 					'id' => array(
+ 							'type' => 'serial',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {relation}.id.',
+ 					),
+ 					'id_metadata' => array(
+ 							'type' => 'int',
+ 							'length' => 'big',
+ 							'not null' => TRUE,
+ 							'description' => 'The {relation}.id_metadata is fk metadata'
+ 					),
+ 					'url' => array(
+ 							'type' => 'text',
+ 							'not null' => FALSE,
+ 							'description' => 'The {relation}.url contins a external link.',
+ 					),
+ 					'label' => array(
+ 							'type' => 'text',
+ 							'not null' => FALSE,
+ 							'description' => 'The {relation}.label contins link label.',
+ 					),
+ 					'data_source' => array(
+			 			'description' => 'True if is a link to data source, false otherwise.',
+			 			'type' => 'int',
+			 			'size' => 'tiny',
+			 			'unsigned' => TRUE,
+			 			'default' => 0,
+			 			'not null' => FALSE, 
+			 		),
+ 			),
+ 			'primary key' => array('id'),
+ 			'foreign key' => array(
+ 					'fk_relation_metadata' => array(
+ 							'table' => 'metadata',
+ 							'columns' => array('id' => 'nid'),
+ 					),
+ 			),
+ 	);
+ 	
+ 	// table attach
+ 	$schema['lu_attach_type'] = array(
+ 			'description' => 'Store metadata relation',
+ 			'fields' => array(
+ 					'id' => array(
+ 							'type' => 'serial',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {lu_attach_type}.id.',
+ 					),
+ 					'name' => array(
+ 							'type' => 'text',
+ 							'not null' => FALSE,
+ 							'description' => 'The {lu_attach_type}.name.',
+ 					),
+ 			),
+ 			'primary key' => array('id'),
+ 	);
+ 	
+ 	// table attach
+ 	$schema['attach'] = array(
+ 			'description' => 'Store metadata attachment',
+ 			'fields' => array(
+ 					'id' => array(
+ 							'type' => 'serial',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {attach}.id of the node attachment.',
+ 					),
+ 					'vid' => array(
+ 							'type' => 'int',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'default' => 0,
+ 							'description' => 'Primary Key: The {attach}.vid (version id) of the attachment.',
+ 					),
+ 					'id_metadata' => array(
+ 							'type' => 'int',
+ 							'length' => 'big',
+ 							'not null' => TRUE,
+ 							'description' => 'The {attach}.id_metadata is fk metadata'
+ 					),
+ 					'id_attach_type' => array(
+ 							'type' => 'int',
+ 							'length' => 'big',
+ 							'not null' => TRUE,
+ 							'description' => 'The {attach}.id_metadata is fk metadata'
+ 					),
+ 					'creation_date' => array(
+ 							'type' => 'int',
+ 							'not null' => TRUE,
+ 							'description' => 'The {attach}.date is creation unix timestamp of the attachment.',
+ 					),
+ 					'id_publisher' => array(
+ 							'type' => 'int',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {attach}.id is publisher id of the attachment.',
+ 					),
+ 					'description' => array(
+ 							'type' => 'text',
+ 							'not null' => FALSE,
+ 							'description' => 'The {attach}.coverage contins attachment detailed descriptions.',
+ 					),
+ 					'last_update' => array(
+ 							'type' => 'int',
+ 							'not null' => TRUE,
+ 							'description' => 'The {attach}.date is creation unix timestamp of the attachment.',
+ 					),
+ 					'status' => array(
+ 							'type' => 'int',
+ 							'size' => 'small',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'default' => 0,
+ 							'description' => 'The {attach}.status ',
+ 					),
+ 					'fid' => array(
+ 							'type' => 'int',
+ 							'not null' => TRUE,
+ 							'description' => 'The {attach}.fid is {file_managed} id related to attachment.',
+ 					),
+ 					'file_format' => array(
+ 							'type' => 'text',
+ 							'not null' => FALSE,
+ 							'description' => 'The {attach}.file_format.',
+ 					),
+ 			),
+ 			'unique keys' => array(
+ 					'id_vid' => array('id', 'vid'),
+ 					'vid'     => array('vid')
+ 			),
+ 			'primary key' => array('id'),
+ 			'foreign key' => array(
+ 					'fk_attach_metadata' => array(
+ 							'table' => 'metadata',
+ 							'columns' => array('id' => 'nid'),
+ 					),
+ 					'fk_attach_user' => array(
+ 							'table' => 'users',
+ 							'columns' => array('id_publisher' => 'uid'),
+ 					),
+ 					'fk_attach_lu_attach_type' => array(
+ 							'table' => 'lu_attach_type',
+ 							'columns' => array('id_attach_type' => 'id'),
+ 					),
+ 					'fk_attach_file_managed' => array(
+ 							'table' => 'file_managed',
+ 							'columns' => array('fid' => 'fid'),
+ 					),
+ 			),
+ 	);
+ 	
+ 	// table attach
+ 	$schema['metadata_preview'] = array(
+ 			'description' => 'Store metadata preview',
+ 			'fields' => array(
+ 					'id' => array(
+ 							'type' => 'serial',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {metadata_preview}.id.',
+ 					),
+ 					'id_attach' => array(
+ 							'type' => 'int',
+ 							'length' => 'big',
+ 							'not null' => TRUE,
+ 							'description' => 'The {metadata_preview}.id_attach is fk (attach)'
+ 					),
+ 					'image' => array(
+ 							'type' => 'text',
+ 							'not null' => FALSE,
+ 							'description' => 'The {metadata_preview}.image contains image url.',
+ 					),
+ 					'label' => array(
+ 							'type' => 'text',
+ 							'not null' => FALSE,
+ 							'description' => 'The {metadata_preview}.label contins link label.',
+ 					),
+ 			),
+ 			'primary key' => array('id'),
+ 			'foreign key' => array(
+ 					'fk_metadata_preview_attach' => array(
+ 							'table' => 'attach',
+ 							'columns' => array('id' => 'id'),
+ 					),
+ 			),
+ 	);
+ 	
+ 	// table lu_event_type
+ 	$schema['lu_event_type'] = array(
+ 			'description' => 'Store metadata relation',
+ 			'fields' => array(
+ 					'id' => array(
+ 							'type' => 'serial',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {lu_event_type}.id.',
+ 					),
+ 					'label' => array(
+ 							'type' => 'text',
+ 							'not null' => TRUE,
+ 							'description' => 'The {lu_event_type}.label.',
+ 					),
+ 			),
+ 			'primary key' => array('id'),
+ 	);
+ 	
+ 	// table metadata_events
+ 	$schema['metadata_events'] = array(
+ 			'description' => 'Store metadata event',
+ 			'fields' => array(
+ 					'id' => array(
+ 							'type' => 'serial',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {metadata_events}.id.',
+ 					),
+ 					'id_metadata' => array(
+ 							'type' => 'int',
+ 							'length' => 'big',
+ 							'not null' => TRUE,
+ 							'description' => 'The {metadata_events}.id_metadata (FK metadata)'
+ 					),
+ 					'id_event_type' => array(
+ 							'type' => 'int',
+ 							'length' => 'big',
+ 							'not null' => TRUE,
+ 							'description' => 'The {metadata_events}.id_event_type (FK lu_event_type)'
+ 					),
+ 					'date' => array(
+ 							'type' => 'int',
+ 							'not null' => TRUE,
+ 							'description' => 'The {metadata_events}.date contains event timestamp.',
+ 					),
+ 			),
+ 			'primary key' => array('id'),
+ 			'foreign key' => array(
+ 					'fk_metadata_events_lu_event_type' => array(
+ 							'table' => 'lu_event_type',
+ 							'columns' => array('id_event_type' => 'id'),
+ 					),
+ 					'fk_metadata_events_metadata' => array(
+ 							'table' => 'metadata',
+ 							'columns' => array('id_metadata' => 'id'),
+ 					),
+ 			),
+ 	);
+ 	 	
+ 	// table data_raw
+ 	$schema['data_raw'] = array(
+ 			'description' => 'Store a data raw',
+ 			'fields' => array(
+ 					'id_attach' => array(
+ 							'type' => 'int',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {data}.id_attachment of the data.',
+ 					),
+ 					'vid' => array(
+ 							'type' => 'int',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'default' => 0,
+ 							'description' => 'Primary Key: The {data}.vid (version id) of the data.',
+ 					),
+ 					'url' => array(
+ 							'type' => 'text',
+ 							'not null' => FALSE,
+ 							'description' => 'The {data_raw}.url.',
+ 					),
+ 			),
+ 			'unique keys' => array(
+ 					'id_attach_vid' => array('id_attach', 'vid'),
+ 					'vid'     => array('vid')
+ 			),
+ 			'primary key' => array('id_attach'),
+ 			'foreign key' => array(
+ 					'fk_data_raw_metadata' => array(
+ 							'table' => 'metadata',
+ 							'columns' => array('id_attach' => 'id'),
+ 					),
+ 			),
+ 	);
+ 	
+ 	// table data_md
+ 	$schema['data_md'] = array(
+ 			'description' => 'Store a data raw',
+ 			'fields' => array(
+ 					'id_attach' => array(
+ 							'type' => 'int',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {data}.id_attachment of the data.',
+ 					),
+ 					'vid' => array(
+ 							'type' => 'int',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'default' => 0,
+ 							'description' => 'Primary Key: The {data}.vid (version id) of the data.',
+ 					), 					
+ 					'url' => array(
+ 							'type' => 'text',
+ 							'not null' => FALSE,
+ 							'description' => 'The {data_raw}.url.',
+ 					),
+ 			),
+ 			'unique keys' => array(
+ 					'id_attach_vid' => array('id_attach', 'vid'),
+ 					'vid'     => array('vid')
+ 			),
+ 			'primary key' => array('id_attach'),
+ 			'foreign key' => array(
+ 					'fk_attach_md_data_' => array(
+ 							'table' => 'attach',
+ 							'columns' => array('id_attach' => 'id'),
+ 					),
+ 			),
+ 	);
+ 	
+ 	
+ 	// table report
+ 	$schema['report'] = array(
+ 			'description' => 'Store a data',
+ 			'fields' => array(
+ 					'id_attach' => array(
+ 							'type' => 'int',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {data}.id_attachment of the data.',
+ 					),
+ 					'vid' => array(
+ 							'type' => 'int',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'default' => 0,
+ 							'description' => 'Primary Key: The {data}.vid (version id) of the data.',
+ 					),
+ 					'url' => array(
+ 							'type' => 'varchar',
+ 							'length' => 200,
+ 							'not null' => TRUE,
+ 							'description' => 'The {data}.url.',
+ 					),
+ 					
+ 			),
+ 			'unique keys' => array(
+ 					'id_attach_vid' => array('id_attach', 'vid'),
+ 					'vid'     => array('vid')
+ 			),
+ 			'primary key' => array('id_attach'),
+ 			'foreign key' => array(
+ 					'fk_report_metadata' => array(
+ 							'table' => 'metadata',
+ 							'columns' => array('id_attach' => 'id'),
+ 					),
+ 					
+ 			),
+ 	);
+ 	
+ 	// table application
+ 	$schema['application'] = array(
+ 			'description' => 'Store a data',
+ 			'fields' => array(
+ 					'id_attach' => array(
+ 							'type' => 'int',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {data}.id_attachment of the data.',
+ 					),
+ 					'vid' => array(
+ 							'type' => 'int',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'default' => 0,
+ 							'description' => 'Primary Key: The {data}.vid (version id) of the data.',
+ 					),
+ 					'url_website' => array(
+ 							'type' => 'text',
+ 							'not null' => FALSE,
+ 							'description' => 'The {application}.url_repository is url repository of the application.',
+ 					),
+ 					'url_repository' => array(
+ 							'type' => 'text',
+ 							'not null' => FALSE,
+ 							'description' => 'The {application}.url_repository is url repository of the application.',
+ 					),
+ 					'url_docs' => array(
+ 							'type' => 'text',
+ 							'not null' => FALSE,
+ 							'description' => 'The {application}.url_docs contains url documentation of the application.',
+ 					),
+ 			),
+ 			'unique keys' => array(
+ 					'id_application_vid' => array('id_attach', 'vid'),
+ 					'vid'     => array('vid')
+ 			),
+ 			'primary key' => array('id_attach'),
+ 			'foreign key' => array(
+ 					'fk_application_metadata' => array(
+ 							'table' => 'metadata',
+ 							'columns' => array('id_attach' => 'id'),
+ 					),
+ 			),
+ 	);
+ 	
+ 	$schema['users_uid'] = array(
+ 			'description' => 'Store {Users} uid',
+ 			'fields' => array(
+ 					'id_user' => array(
+ 							'type' => 'int',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {lu_attach_type}.id.',
+ 					),
+ 					'uid' => array(
+ 							'pgsql_type' => 'uuid',
+ 							'not null' => TRUE,
+ 							'description' => 'The {lu_attach_type}.name.',
+ 					),
+ 			),
+ 			'primary key' => array('id_user'),
+ 			'unique keys' => array('uid' => array('uid')),
+ 	);
+ 	
+ 	$schema['federation'] = array(
+ 			'description' => 'Federation system configuration',
+ 			'fields' => array(
+ 					'id' => array(
+ 							'type' => 'serial',
+ 							'size' => 'big',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'description' => 'The {federation}.id.',
+ 					),
+ 					'tid' => array(
+ 							'type' => 'int',
+ 							'size' => 'big',
+ 							'unsigned' => false,
+ 							'not null' => TRUE,
+ 							'description' => 'Primary Key: Unique term ID.',
+ 					),
+ 					'name' => array(
+							'type' => 'varchar',
+							'length' => 256,
+							'not null' => TRUE,
+							'description' => 'The {federation}.name.',
+ 					),
+ 					'uid' => array(
+			 			'description' => t('System unique identifier.'),
+			 			'pgsql_type' => 'uuid', 
+			 			'not null' => true,			 			
+			 		),
+ 					'url' => array(
+ 							'type' => 'text',
+ 							'not null' => TRUE,
+ 							'description' => 'The {federation} system base url.',
+ 					),
+ 					'local' => array(
+ 							'type' => 'int',
+ 							'size' => 'small',
+ 							'unsigned' => TRUE,
+ 							'not null' => TRUE,
+ 							'default' => 1,
+ 							'description' => 'The {federation}.local field is 1 to local system, 0 otherwise.',
+ 					),
+ 			),
+ 			'primary key',
+ 			'uniquer keys',
+ 			);
+ 	
+ 	return $schema;
+ }
+ 
+ /**
+  * Perform setup tasks when the module is installed.
+  * Implements hook_install.
+  * 
+  * Install metadata module to drupal system:
+  * 1 Add metadata node_type.
+  * 2 Add metadata content type
+  * 3 Add metadata vocabularies
+  * 4 Add metadata field
+  * 
+  */
+ function metadata_install()
+ {
+ 	// During installation, the t() function is unavailable, so we use get_t()
+ 	// to store the name of the translation function.
+ 	$t = get_t();
+ 	
+ 	// We define the node type as an associative array.
+ 	$metadata_node_type = array(
+ 			'type' => $t('metadata'),
+ 			'name' => $t('Metadata'),
+ 			// 'base' tells Drupal the base string for hook functions.
+ 	// This is often the module name; if base is set to 'mymodule', Drupal
+ 	// would call mymodule_insert() or similar for node hooks.
+ 	// In this case, we set base equal to 'node_content' so Drupal will handle
+ 	// our node as if we had designed it in the UI.
+ 			'base' => 'metadata',
+ 			'description' => $t('This is an metadata node type.'),
+ 			'title_label' => $t('Metadata'),
+ 			'custom' => true,
+ 	);
+ 	
+ 	// Complete the node type definition by setting any defaults not explicitly
+ 	// declared above.
+ 	// http://api.drupal.org/api/function/node_type_set_defaults/7
+ 	$content_type = node_type_set_defaults($metadata_node_type);
+ 	
+ 	//We add a body field and set the body label immediately.
+ 	node_add_body_field($content_type, $t('Descrizione')); 	
+ 	
+ 	// Save the content type
+ 	node_type_save($content_type);
+ 	
+ 	// Create the metadata vocabularies
+ 	_create_vocabularies();
+ 	
+ 	
+ 	// Create all the fields we are adding to our content type.
+ 	foreach (_metadata_installed_fields() as $field) {
+ 		field_create_field($field);
+ 	}
+ 	
+ 	// Create all the instances for our fields.
+ 	foreach (_metadata_installed_instances() as $instance) {
+ 		$instance['entity_type'] = 'node';
+ 		$instance['bundle'] = 'metadata';
+ 		field_create_instance($instance);
+ 	}
+ 	
+ 	$authors = metadata_get_default_authors();
+ 	foreach ($authors as $author) {
+ 		drupal_write_record('author', $author);
+ 	}
+ 	
+ 	_create_event_views();
+ 	
+ 	// serialize and save on db configuration
+ 	variable_set('metadata_shortcut_block_config', array( 'items_count' => 0, 'items' => array()));
+ 	
+ 	variable_set('metadata_odata_db_name', 'OpenDataDomain');
+ 	
+ 	try {
+ 		db_query("CREATE LANGUAGE plpgsql");
+ 	} catch(Exception $e){}
+ 	
+ 	//metadata_update_7001();
+ 	metadata_update_7002();
+ 	metadata_update_7004();
+ 	metadata_update_7009();
+ 	_support_update();
+ 	variable_set('metadata_format_geographic', 'Cartografico');
+ 	variable_set('metadata_format_alphanumeric', 'Tabellare');
+ 	variable_set('metadata_format_data', 'Dato');
+ 	variable_set('metadata_format_file', 'File');
+ 	variable_set('metadata_format_application', 'Applicazione');
+ 	metadata_update_7018();
+ 	metadata_update_7020();
+ 	metadata_update_7021();
+ 	
+ }
+ 
+ /**
+  * Remove any information that the module sets.
+  * Uninstall metadata module.
+  * hook_uninstall implementation
+  * 
+  * @see hook_uninstall
+  **/
+ function metadata_uninstall()
+ {
+ 	// Loop over each of the fields defined by this module and delete
+ 	// all instances of the field, their data, and the field itself.
+ 	foreach (array_keys(_metadata_installed_fields()) as $field) {
+ 		field_delete_field($field);
+ 	}
+ 	
+ 	// Loop over any remaining field instances attached to the job_post
+ 	// content type (such as the body field) and delete them individually.
+ 	$instances = field_info_instances('node', 'metadata');
+ 	foreach ($instances as $instance_name => $instance) {
+ 		field_delete_instance($instance);
+ 	}
+ 	
+ 	// delete vocabularies
+ 	_delete_vocabularies();
+ 	
+ 	$node_type = 'metadata';
+
+ 	_drop_events_view();
+ 	
+ 	db_drop_table('metadata');
+ 	
+ 	node_type_delete($node_type);
+ 	
+ 	variable_del('metadata_lu_format');
+ 	variable_del('metadata_lu_category');
+ 	variable_del('metadata_lu_type');
+ 	variable_del('metadata_lu_format');
+ 	
+ 	// delete all metadata nodes
+ 	$deleted = db_delete('node')
+ 			->condition('type', 'metadata', 'like')
+ 			->execute();
+ }
+ 
+ /**
+  * Implements hook_modules_installed().
+  *
+  * @see metadata_install()
+  */
+ function metadata_modules_installed($modules) {
+ 	if (in_array('metadata', $modules)) {
+ 		$menu = array(
+ 				'menu_name' => 'metadata_admin_menu',
+ 				'title' => t('Menu amministrazione OpenData'),
+ 				'description' => t('Menu amministrazione OpenData'),
+ 		);
+ 		menu_save($menu);
+ 	}
+ }
+ 
+ /**
+  * Return a structured array defining the fields created by this content type.
+  * 
+  * @return array metadata fields to add during installation process.
+  */
+ function _metadata_installed_fields() {
+ 	$t = get_t();
+ 	return array(
+ 			'metadata_category' => array(
+ 					'field_name'  => 'metadata_category',
+ 					'label'       => $t('Categoria'),
+ 					'type'        => 'taxonomy_term_reference',
+ 					'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+ 					'settings' => array(
+ 							'allowed_values' => array(
+ 									array(
+ 											'vocabulary' => 'metadata_lu_category',
+ 											'parent' => 0,
+ 									),
+ 							),
+ 					),
+ 			),
+ 			'metadata_format' => array(
+ 					'field_name'  => 'metadata_format',
+ 					'label'       => $t('Formato'),
+ 					'type'        => 'taxonomy_term_reference',
+ 					'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+ 					'settings' => array(
+ 							'allowed_values' => array(
+ 									array(
+ 											'vocabulary' => 'metadata_lu_format',
+ 											'parent' => 0,
+ 									),
+ 							),
+ 					),
+ 			),
+ 			'metadata_type' => array(
+ 					'field_name'  => 'metadata_type',
+ 					'label'       => $t('Etichetta'),
+ 					'type'        => 'taxonomy_term_reference',
+ 					'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+ 					'settings' => array(
+ 							'allowed_values' => array(
+ 									array(
+ 											'vocabulary' => 'metadata_lu_type',
+ 											'parent' => 0,
+ 									),
+ 							),
+ 					),
+ 			),
+ 			'metadata_license' => array(
+ 					'field_name'  => 'metadata_license',
+ 					'label'       => $t('Licenza'),
+ 					'type'        => 'taxonomy_term_reference',
+ 					'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+ 					'settings' => array(
+ 							'allowed_values' => array(
+ 									array(
+ 											'vocabulary' => 'metadata_lu_license',
+ 											'parent' => 0,
+ 									),
+ 							),
+ 					),
+ 			),
+ 			'metadata_fivestars' => array(
+ 					'field_name'  => 'metadata_fivestars',
+ 					'label'       => $t('Metadata voting field'),
+ 					'type'        => 'fivestar', 					
+ 			),
+ 	);
+ }
+ 
+ /**
+  * Return a structured array defining the instances for this content type.
+  * 
+  * @return array metadata installed instances field.
+  */
+ function _metadata_installed_instances() {
+ 	// during installation t() function is inaccessible.
+ 	$t = get_t();
+ 	return array(
+ 			'metadata_category' => array(
+ 					'field_name'  => 'metadata_category',
+ 					'type'        => 'text',
+ 					'label'       => $t('Metadata category list'),
+ 					'widget'      => array(
+ 							'type'        => 'term_reference_tree',
+ 					), 					
+ 					'required' => TRUE,
+ 					'display' => array(
+ 							'metadata' => array(
+ 									'label' => $t('Metadata category. Add multiple categories in comma separated value format.'),
+ 									'type' => 'text',
+ 									
+ 							),
+ 					),
+ 			),
+ 			'metadata_type' => array(
+ 					'field_name'  => 'metadata_type',
+ 					'type'        => 'text',
+ 					'label'       => $t('Metadata type list'),
+ 					'widget'      => array(
+ 							'type'        => 'term_reference_tree',
+ 					),
+ 					'required' => TRUE,
+ 					'display' => array(
+ 							'metadata' => array(
+ 									'label' => $t('Metadata'),
+ 									'type' => 'text',
+ 							),
+ 					),
+ 			),
+ 			'metadata_format' => array(
+ 					'field_name'  => 'metadata_format',
+ 					'type'        => 'text',
+ 					'label'       => $t('Metadata format list'),
+ 					'widget'      => array(
+ 							'type'        => 'term_reference_tree',
+ 							'settings' => array(
+ 									'start_minimized' => 0,
+ 									'leaves_only' => 0,
+ 									'filter_view' => '',
+ 									'select_parents' => 1,
+ 									'track_list' => 0,
+ 									'token_display' => '',
+ 							),
+ 					),
+ 					'required' => TRUE,
+ 					'display' => array(
+ 							'metadata' => array(
+ 									'label' => $t('Metadata'),
+ 									'type' => 'text',
+ 							),
+ 					),
+ 			),
+ 			'metadata_license' => array(
+ 					'field_name'  => 'metadata_license',
+ 					'type'        => 'text',
+ 					'label'       => $t('Metadata license list'),
+ 					'widget'      => array(
+ 							'type'        => 'term_reference_tree',
+ 					),
+ 					'required' => TRUE,
+ 					'display' => array(
+ 							'metadata' => array(
+ 									'label' => $t('Metadata'),
+ 									'type' => 'text',
+ 							),
+ 					),
+ 			),
+ 			'metadata_fivestars' => array(
+ 					'field_name'  => 'metadata_fivestars',
+ 					'type'        => 'fivestar',
+ 					'label'       => $t('Metadata voting field'),
+ 					'widget'      => array(
+ 							'type'        => 'exposed',
+ 					),
+ 			),
+ 			
+ 	);
+ }
+
+ /**
+  * Create metadata vocabularies if not exists. 
+  */
+ function _create_vocabularies()
+ {
+ 	// Create the metadata vocabulary if it does not exist.
+ 	$voc_lu_type = taxonomy_vocabulary_load(variable_get('metadata_lu_type', 0));
+ 	if (!$voc_lu_type) {
+ 		$edit = array(
+ 				'name' => t('Tipo'),
+ 				'machine_name' => 'metadata_lu_type',
+ 				'description' => t('Tag schede dati'),
+ 				'hierarchy' => 1,
+ 				'module' => 'metadata',
+ 				'weight' => -10,
+ 		);
+ 		$voc_lu_type = (object) $edit;
+ 		taxonomy_vocabulary_save($voc_lu_type);
+ 		variable_set('metadata_lu_type', $voc_lu_type->vid);
+ 	}
+ 	
+ 	// Create the metadata vocabulary if it does not exist.
+ 	$voc_lu_category = taxonomy_vocabulary_load(variable_get('metadata_lu_category', 0));
+ 	if (!$voc_lu_category) {
+ 		$edit = array(
+ 				'name' => t('Categoria'),
+ 				'machine_name' => 'metadata_lu_category',
+ 				'description' => t('Categorie schede dati'),
+ 				'hierarchy' => 1,
+ 				'module' => 'metadata',
+ 				'weight' => -10,
+ 		);
+ 		$voc_lu_category = (object) $edit;
+ 		taxonomy_vocabulary_save($voc_lu_category);
+ 		variable_set('metadata_lu_category', $voc_lu_category->vid);
+ 	}
+ 	
+ 	// Create the metadata vocabulary if it does not exist.
+ 	$voc_lu_format = taxonomy_vocabulary_load(variable_get('metadata_lu_format', 0));
+ 	if (!$voc_lu_format) {
+ 		$edit = array(
+ 				'name' => t('Formato'),
+ 				'machine_name' => 'metadata_lu_format',
+ 				'description' => t('Lista formati schede dati'),
+ 				'hierarchy' => 2,
+ 				'module' => 'metadata',
+ 				'weight' => -10,
+ 		);
+ 		$voc_lu_format = (object) $edit;
+ 		taxonomy_vocabulary_save($voc_lu_format);
+ 		variable_set('metadata_lu_format', $voc_lu_format->vid);
+ 	}
+ 	
+ 	// Create the metadata vocabulary if it does not exist.
+ 	$voc_lu_license = taxonomy_vocabulary_load(variable_get('metadata_lu_license', 0));
+ 	if (!$voc_lu_license) {
+ 		$edit = array(
+ 				'name' => t('Licenza'),
+ 				'machine_name' => 'metadata_lu_license',
+ 				'description' => t('Elenco licenze schede dati'),
+ 				'hierarchy' => 1,
+ 				'module' => 'metadata',
+ 				'weight' => -10,
+ 		);
+ 		$voc_lu_license = (object) $edit;
+ 		taxonomy_vocabulary_save($voc_lu_license);
+ 		variable_set('metadata_lu_license', $voc_lu_license->vid);
+ 	}
+ 	
+ 	// Create the metadata vocabulary if it does not exist.
+ 	$voc_lu_datasources = taxonomy_vocabulary_load(variable_get('metadata_lu_datasources', 0));
+ 	if (!$voc_lu_datasources) {
+ 		$edit = array(
+ 				'name' => t('Banca dati'),
+ 				'machine_name' => 'metadata_lu_datasources',
+ 				'description' => t('Banca dati'),
+ 				'hierarchy' => 1,
+ 				'module' => 'metadata',
+ 				'weight' => -10,
+ 		);
+ 		$voc_lu_datasources = (object) $edit;
+ 		taxonomy_vocabulary_save($voc_lu_datasources);
+ 		variable_set('metadata_lu_datasources', $voc_lu_datasources->vid);
+ 	
+ 		$terms = get_metadata_term();
+ 		// lu_type terms
+ 		_add_terms_recursive($terms[$voc_lu_datasources->machine_name], $voc_lu_datasources );
+ 	
+ 	}
+ 	
+ 	_add_terms();
+ }
+ 
+ /**
+  * Insert if not exists vocabulary terms readed by metadata.config.inc.
+  */
+ function _add_terms() {
+
+ 	$terms = get_metadata_term();
+ 	// lu_type terms
+ 	$voc_lu_type = taxonomy_vocabulary_load(variable_get('metadata_lu_type', 0));
+ 	if ($voc_lu_type)
+ 	{
+ 		_add_terms_recursive($terms[$voc_lu_type->machine_name], $voc_lu_type );
+ 	}
+
+ 	// lu_category terms
+ 	$voc_lu_category = taxonomy_vocabulary_load(variable_get('metadata_lu_category', 0));
+ 	if ($voc_lu_category) {
+ 		_add_terms_recursive($terms[$voc_lu_category->machine_name], $voc_lu_category );
+ 	}
+
+
+ 	$voc_lu_format = taxonomy_vocabulary_load(variable_get('metadata_lu_format', 0));
+ 	if ($voc_lu_format)
+ 	{
+ 		_add_terms_recursive($terms[$voc_lu_format->machine_name], $voc_lu_format );
+ 	}
+ 	
+ 	$voc_lu_license = taxonomy_vocabulary_load(variable_get('metadata_lu_license', 0));
+ 	if ($voc_lu_license)
+ 	{
+ 		_add_terms_recursive($terms[$voc_lu_license->machine_name], $voc_lu_license );
+ 	}
+ }
+ 
+ /**
+  * Delete vocabolary and their terms. Used by uninstall process.
+  */
+ function _delete_vocabularies()
+ {
+ 	$voc_lu_type = taxonomy_vocabulary_load(variable_get('metadata_lu_type', 0));
+ 	if ($voc_lu_type)
+ 	{
+ 		taxonomy_vocabulary_delete($voc_lu_type->vid);
+ 	}
+ 	
+ 	$voc_lu_format = taxonomy_vocabulary_load(variable_get('metadata_lu_format', 0));
+ 	if ($voc_lu_format) 
+ 	{
+ 		taxonomy_vocabulary_delete($voc_lu_format->vid);
+ 	}
+ 	
+ 	$voc_lu_category = taxonomy_vocabulary_load(variable_get('metadata_lu_category', 0));
+ 	if ($voc_lu_category) {
+ 		taxonomy_vocabulary_delete($voc_lu_category->vid);
+ 		
+ 	}
+ 	
+ 	$voc_lu_license = taxonomy_vocabulary_load(variable_get('metadata_lu_license', 0));
+ 	if ($voc_lu_license) {
+ 		taxonomy_vocabulary_delete($voc_lu_license->vid);
+ 	
+ 	}
+ }
+ 
+ 
+ /**
+  * Insert if not exists vocabulary terms.
+  */
+ function _add_terms_recursive($terms_level, $vocabulary, $parent=0 ) {
+ 
+ 	if ($vocabulary)
+ 	{
+ 		foreach ($terms_level as $key => $term) {
+ 			
+ 			// isn't a leaf?
+ 			if(is_array($term))
+ 			{
+ 				//taxonomy_term_save
+ 				$term_obj = array(
+ 						'vid' => $vocabulary->vid,
+ 						'name' => $key,
+ 						'parent' => $parent,
+ 				);
+ 				
+ 				$term_obj = (object)$term_obj;
+ 				taxonomy_term_save($term_obj);
+ 				
+ 				// recursive step to save a new term level
+ 				_add_terms_recursive($term, $vocabulary, $term_obj->tid);
+ 				
+ 			}
+ 			else
+ 			{
+ 				//taxonomy_term_save
+ 				$term_obj = array(
+ 						'vid' => $vocabulary->vid,
+ 						'name' => $term,
+ 						'parent' => $parent,
+ 				);
+ 				
+ 				taxonomy_term_save((object)$term_obj);
+ 			}
+ 		}
+ 	
+ 	}
+ }
+
+ /**
+  * Add events view on db.
+  */
+ function _create_event_views() {
+ 	db_query('CREATE OR REPLACE VIEW "public"."view_last_mounth_metadata_events" AS 
+				SELECT metadata_events.id_metadata, metadata_events.id_event_type, count(*) AS tot 
+ 				FROM metadata_events WHERE (metadata_events.date > 
+ 						((date_part(\'epoch\'::text, now()))::integer - (date_part(\'epoch\'::text, \'30 days\'::interval))::integer)) 
+ 				GROUP BY metadata_events.id_metadata, metadata_events.id_event_type;');
+ 	
+ 	db_query("CREATE OR REPLACE VIEW view_metadata_count_by_taxonomy_term AS
+ 			(SELECT 'taxonomy' AS type, taxonomy_index.tid, count(*) AS count
+ 			FROM metadata m INNER JOIN taxonomy_index taxonomy_index ON m.nid = taxonomy_index.nid
+ 			WHERE m.status = 1 AND m.visibility = 1
+ 			GROUP BY taxonomy_index.tid
+ 			UNION
+ 			SELECT 'author' AS type, a.id AS tid, count(*) AS count
+ 			FROM metadata m INNER JOIN author a ON m.id_author = a.id
+ 			WHERE m.status = 1 AND m.visibility = 1
+ 			GROUP BY a.id);");
+ 	
+ 	db_query('CREATE OR REPLACE VIEW "public"."view_last_mounth_most_active_author" AS 
+				SELECT a.id, count(*) AS tot 
+ 				FROM (metadata m JOIN author a ON ((m.id_author = a.id))) 
+ 				WHERE (m.last_update > ((date_part(\'epoch\'::text, now()))::integer - 
+ 					(date_part(\'epoch\'::text, \'30 days\'::interval))::integer)) GROUP BY a.id ORDER BY count(*) DESC;');
+ 	
+ 	db_query('CREATE OR REPLACE VIEW "public"."view_last_mounth_most_voted_author" AS 
+				SELECT m.id_author, sum(v.vote_count) AS tot_vote_count, avg(v.avg_vote) AS tot_avg_vote 
+ 				FROM (metadata m JOIN (
+ 						SELECT votingapi_vote.entity_id, count(*) AS vote_count, 
+ 							(sum(votingapi_vote.value) / (count(*))::double precision) AS avg_vote 
+ 						FROM votingapi_vote WHERE (votingapi_vote."timestamp" > 
+ 							((date_part(\'epoch\'::text, now()))::integer - (date_part(\'epoch\'::text, \'30 days\'::interval))::integer)) 
+ 						GROUP BY votingapi_vote.entity_id) v ON ((m.nid = v.entity_id))) 
+ 				GROUP BY m.id_author ORDER BY sum(v.vote_count) DESC, avg(v.avg_vote) DESC;');
+ 	
+ 	db_query('CREATE OR REPLACE VIEW "public"."view_metadata_events" AS 
+				SELECT metadata_events.id_metadata, metadata_events.id_event_type, count(*) AS tot 
+ 				FROM metadata_events 
+ 				GROUP BY metadata_events.id_metadata, metadata_events.id_event_type;');
+ 	
+ 	db_query('CREATE OR REPLACE VIEW "public"."view_most_active_author" AS 
+				SELECT a.id, count(*) AS tot 
+ 				FROM (metadata m JOIN author a ON ((m.id_author = a.id))) 
+ 				GROUP BY a.id ORDER BY count(*) DESC;');
+ 	
+ 	db_query('CREATE OR REPLACE VIEW "public"."view_most_voted_author" AS 
+				SELECT m.id_author, sum(v.vote_count) AS tot_vote_count, avg(v.avg_vote) AS tot_avg_vote 
+ 				FROM (metadata m JOIN (
+ 					SELECT votingapi_vote.entity_id, count(*) AS vote_count, (sum(votingapi_vote.value) / (count(*))::double precision) AS avg_vote 
+ 					FROM votingapi_vote GROUP BY votingapi_vote.entity_id) v ON ((m.nid = v.entity_id))) 
+ 				GROUP BY m.id_author ORDER BY sum(v.vote_count) DESC, avg(v.avg_vote) DESC;');
+ 	
+ 	db_query('SELECT m.nid, CASE WHEN (v.tot IS NULL) THEN (0)::bigint ELSE v.tot END AS view_count, 
+ 					CASE WHEN (s.tot IS NULL) THEN (0)::bigint ELSE s.tot END AS search_count, 
+ 					CASE WHEN (d.tot IS NULL) THEN (0)::bigint ELSE d.tot END AS download_count 
+ 			  FROM (((metadata m LEFT JOIN 
+ 				(SELECT view_metadata_events.id_metadata, view_metadata_events.id_event_type, view_metadata_events.tot 
+ 				FROM view_metadata_events 
+ 				WHERE (view_metadata_events.id_event_type = 0)) v ON ((v.id_metadata = m.nid))) 
+ 				LEFT JOIN (
+ 					SELECT view_metadata_events.id_metadata, view_metadata_events.id_event_type, view_metadata_events.tot 
+ 					FROM view_metadata_events 
+ 					WHERE (view_metadata_events.id_event_type = 1)) s ON ((v.id_metadata = s.id_metadata))) 
+ 				LEFT JOIN (
+ 					SELECT view_metadata_events.id_metadata, view_metadata_events.id_event_type, view_metadata_events.tot 
+ 					FROM view_metadata_events 
+ 					WHERE (view_metadata_events.id_event_type = 4)) d ON ((v.id_metadata = d.id_metadata)))');
+ 	
+ 	db_query('CREATE OR REPLACE VIEW metadata_most_active_author AS
+ 			SELECT a.id, count(*) AS tot
+ 			FROM metadata m INNER JOIN author a ON m.id_author = a.id
+ 			WHERE m.status=1 AND m.visibility=1 AND a.status=1
+ 			GROUP BY a.id ORDER BY count(*) DESC;');
+ 	
+ 	db_query('CREATE OR REPLACE VIEW view_metadata_relevance AS
+			SELECT m.nid, CASE WHEN (v.tot IS NULL) THEN (0)::bigint ELSE v.tot END AS view_count, 
+					CASE WHEN (s.tot IS NULL) THEN (0)::bigint ELSE s.tot END AS search_count, 
+					CASE WHEN (d.tot IS NULL) THEN (0)::bigint ELSE d.tot END AS download_count 
+			FROM (((metadata m LEFT JOIN 
+				(
+					SELECT view_metadata_events.id_metadata, view_metadata_events.id_event_type, view_metadata_events.tot 
+					FROM view_metadata_events 
+					WHERE (view_metadata_events.id_event_type = 0)) v ON ((v.id_metadata = m.nid))) 
+				LEFT JOIN 
+				(
+					SELECT view_metadata_events.id_metadata, view_metadata_events.id_event_type, view_metadata_events.tot 
+					FROM view_metadata_events 
+					WHERE (view_metadata_events.id_event_type = 1)) s ON ((v.id_metadata = s.id_metadata))) 
+				LEFT JOIN 
+				(
+						SELECT view_metadata_events.id_metadata, view_metadata_events.id_event_type, view_metadata_events.tot 
+						FROM view_metadata_events WHERE (view_metadata_events.id_event_type = 4)) d ON ((v.id_metadata = d.id_metadata))
+				);');
+ }
+ 
+ /**
+  * Drop events view by db.
+  */
+ function _drop_events_view() {
+ 	db_query('DROP VIEW IF EXISTS view_last_mounth_metadata_events');
+ 	db_query('DROP VIEW IF EXISTS view_most_active_author');
+ 	db_query('DROP VIEW IF EXISTS view_metadata_events');
+ 	db_query('DROP VIEW IF EXISTS view_last_mounth_most_voted_author');
+ 	db_query('DROP VIEW IF EXISTS view_last_mounth_most_active_author');
+ 	db_query('DROP VIEW IF EXISTS view_most_voted_author');
+ 	db_query('DROP VIEW IF EXISTS metadata_most_active_author');
+ 	db_query('DROP VIEW IF EXISTS view_metadata_count_by_taxonomy_term');
+ 	db_query('DROP VIEW IF EXISTS metadata_most_active_author');
+ }
+ 
+ /**
+  * Module update function.
+  * 
+  * add new taxonomy 'Banca dati'.
+  *	add uid to metadata table.
+  *	add data_source to relation table.
+  *	add file_format to attach table.
+  */
+ function metadata_update_7001() {
+ 	// add new taxonomy 'Banca dati'
+ 	// Create the metadata vocabulary if it does not exist.
+ 	$voc_lu_datasources = taxonomy_vocabulary_load(variable_get('metadata_lu_datasources', 0));
+ 	if (!$voc_lu_datasources) {
+ 		$edit = array(
+ 				'name' => t('Banca dati'),
+ 				'machine_name' => 'metadata_lu_datasources',
+ 				'description' => t('Banca dati'),
+ 				'hierarchy' => 1,
+ 				'module' => 'metadata',
+ 				'weight' => -10,
+ 		);
+ 		$voc_lu_datasources = (object) $edit;
+ 		taxonomy_vocabulary_save($voc_lu_datasources);
+ 		variable_set('metadata_lu_datasources', $voc_lu_datasources->vid);
+ 		
+ 		$terms = get_metadata_term();
+ 		// lu_type terms
+		_add_terms_recursive($terms[$voc_lu_datasources->machine_name], $voc_lu_datasources );
+		
+ 	}
+ 	// add uid to metadata table
+ 	db_add_field('metadata', 'uid', array(
+ 			'description' => t('Metadata unique identifier. Temporary nullable.'),
+ 			'pgsql_type' => 'uuid', 
+ 			'not null' => false,
+ 			'indexes' => array( 'uid' => array('uid'),) )
+ 		);
+ 	// add data_source to relation table
+ 	db_add_field('relation', 'data_source', array(
+ 			'description' => t('True if is a link to data source, false otherwise. '),
+ 			'type' => 'int',
+ 			'size' => 'tiny',
+ 			'unsigned' => true,
+ 			'default' => 0,
+ 			'not null' => 'false', 
+ 			));
+ 	
+ 	// add file_format to attach table
+ 	db_add_field('attach', 'file_format', array(
+ 			'description' => t('File format. '),
+ 			'type' => 'varchar',
+ 			'size' => 'normal',
+ 			'default' => 'csv'
+ 	));
+ }
+ 
+ /**
+  * Add datasources taxonomy field to metadata.
+  */
+ function metadata_update_7002() {
+ 	$new_field = field_create_field( array(
+ 			'field_name'  => 'metadata_datasources',
+ 			'label'       => t('Banca dati'),
+ 			'type'        => 'taxonomy_term_reference',
+ 			'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+ 			'settings' => array(
+ 					'allowed_values' => array(
+ 							array(
+ 									'vocabulary' => 'metadata_lu_datasources',
+ 									'parent' => 0,
+ 							),
+ 					),
+ 			),
+ 	));
+ 	
+ 	field_create_instance( array(
+ 			'field_name'  => 'metadata_datasources',
+ 			'type'        => 'text',
+ 			'label'       => t('Banca dati'),
+ 			'entity_type' => 'node',
+ 			'bundle' => 'metadata',
+ 			'widget'      => array(
+ 					'type'        => 'term_reference_tree',
+ 			),
+ 			'required' => TRUE,
+ 			'display' => array(
+ 					'metadata' => array(
+ 							'label' => t('Metadata'),
+ 							'type' => 'text',
+ 					),
+ 			),
+ 	));
+ 	
+ }
+ 
+ /**
+  * Add datasources default term to existing metadata.
+  * 
+  * @throws DrupalUpdateException on update error
+  * 		PDOException on database error
+  * 
+  */
+ function metadata_update_7003() {
+ 	// get all metadata nid
+ 	$query = db_select('metadata', 'M')
+ 		->fields('M', array('nid'));
+ 	$q_res = $query->execute();
+ 	
+ 	try {
+	 	$nids = array_keys($q_res->fetchAllAssoc('nid'));
+ 		
+ 		// load nodes
+	 	$nodes = node_load_multiple($nids);
+	 	
+	 	// get taxonomy term
+	 	$term = taxonomy_get_term_by_name('DatiOpen.it');
+	 	
+	 	if(isset($term) && count($term)==1) {
+			$tid = array_keys($term); 	
+	 		// fetch node - add term - save
+		 	foreach ($nodes as $node) {
+		 		
+		 		$node->metadata_datasources = array( 
+		 				'und' => array( 
+		 							array( 
+		 								'tid' => $tid[0], 
+		 								'taxonomy_term' => $term[$tid[0]]
+		 								)
+		 						)
+		 		);
+		 		
+		 		// save and submit new node
+		 		$_node = node_submit((object)$node);
+		 		node_save($_node);
+		 	}
+	 	}
+ 	} catch(Exception $e) {
+ 		throw new DrupalUpdateException('Aggiornamento fallito: ' . $e->getMessage(), 999, $e);
+ 	}
+ 	
+ }
+ 
+ /**
+  * Metadata Unique Identifier initialization. 
+  * 
+  * @throws DrupalUpdateException
+  */
+ function metadata_update_7004() {
+ 	try {
+		db_query('UPDATE metadata SET uid=uuid_generate_v4();');
+ 	}
+ 	catch(Exception $e) {
+ 		throw new DrupalUpdateException('Aggiornamento fallito: ' . $e->getMessage(), 999, $e);
+ 	}
+ }
+ 
+ /**
+  * Add visibility options.
+  *
+  * @throws DrupalUpdateException
+  */
+ function metadata_update_7005() {
+ 	try {
+ 		$transaction = db_transaction();
+ 		
+ 		db_add_field('metadata', 'visibility', array( 'type' => 'int', 'size' => 'tiny', 'default' => 0, 'unsigned' => true ));
+ 		
+ 		db_update('metadata')
+ 			->fields(array( 'visibility' => 1))
+ 			->execute();
+
+ 		db_update('metadata')
+ 			->fields(array('status' => 1))
+ 			->execute();
+ 	}
+ 	catch(Exception $e) {
+ 		$transaction->rollback();
+ 		throw new DrupalUpdateException('Aggiornamento fallito: ' . $e->getMessage(), 999, $e);
+ 	}
+ 	
+ 	
+ }
+ 
+ /**
+  * Add attachment columns descriptions.
+  *
+  * @throws DrupalUpdateException
+  */
+ function metadata_update_7006() {
+ 	try {
+ 		db_add_field('attach', 'data_description', array( 'type' => 'text', 'size' => 'medium', 'default' => NULL, ));
+ 	}
+ 	catch(Exception $e) {
+ 		throw new DrupalUpdateException('Aggiornamento fallito: ' . $e->getMessage(), 999, $e);
+ 	}
+ }
+ 
+ 
+ /**
+  * Data source file extension adjust.
+  */
+ function metadata_update_7007() {
+ 	try {
+ 		db_query("UPDATE attach A
+				SET file_format = 'dbf'
+				FROM file_managed M  
+				WHERE A.fid=M.fid AND M.filemime ILIKE 'application/octet-stream'")
+ 			->execute();
+ 		
+ 		db_query("UPDATE attach A
+				SET file_format = 'xls'
+				FROM file_managed M  
+				WHERE A.fid=M.fid AND M.filemime ILIKE 'application/vnd.ms-excel'")
+			->execute();
+ 		
+ 		db_query("UPDATE attach A
+				SET file_format = 'xlsx'
+				FROM file_managed M  
+				WHERE A.fid=M.fid AND M.filemime ILIKE 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'")
+ 			->execute();
+ 		
+ 		db_query("UPDATE attach A
+				SET file_format = 'csv'
+				FROM file_managed M  
+				WHERE A.fid=M.fid AND M.filemime ILIKE 'text/csv';")
+ 			->execute();
+ 		
+ 	} catch (Exception $e) {
+ 		throw new DrupalUpdateException('Aggiornamento fallito: ' . $e.getMessage(), 999, $e);
+ 	};
+ }
+ 
+ /**
+  * Data source file extension adjust.
+  */
+ function metadata_update_7008() {
+ 	try {
+ 		db_query("UPDATE attach A
+ 				SET file_format = 'zip'
+ 				FROM file_managed M
+ 				WHERE A.fid=M.fid AND M.filemime ILIKE 'application/zip';")
+ 				->execute();
+ 		
+ 		} catch (Exception $e) {
+ 			throw new DrupalUpdateException('Aggiornamento fallito: ' . $e.getMessage(), 999, $e);
+ 		};
+ }
+ 	
+ /**
+  * Meta keywords handling.
+  */
+ function metadata_update_7009() {
+ 	variable_set('metadata_datapage_keywords', 'open data, dati aperti, dati');
+ 	variable_set('metadata_metadescription_length', 200);
+ }
+ 
+ /**
+  * Add columns to author table. Needed to author administration and creation.
+  *
+  * @throws DrupalUpdateException
+  */
+ function metadata_update_7010() {
+ 	try {
+ 		db_add_field('author', 'uid', array( 'type' => 'int', 'size' => 'big', 'default' => NULL, ));
+ 		db_add_field('author', 'creation_date', array( 'type' => 'int', 'size' => 'medium', 'default' => NULL, ));
+ 		db_add_field('author', 'status', array( 'type' => 'int', 'size' => 'small', 'default' => 0, ));
+ 	}
+ 	catch(Exception $e) {
+ 		throw new DrupalUpdateException('Aggiornamento fallito: ' . $e->getMessage(), 999, $e);
+ 	}
+ }
+ 
+ /**
+  * Set status of exists authors.
+  */
+ function metadata_update_7011() {
+ 	try {
+ 		db_query("UPDATE author A
+ 				SET status = 1")
+ 				->execute();
+ 
+ 	} catch (Exception $e) {
+ 		throw new DrupalUpdateException('Aggiornamento fallito: ' . $e->getMessage(), 999, $e);
+ 	};
+ }
+ 
+ /**
+  * Add federation support.
+  */
+ function metadata_update_7012() {
+ 	try {
+ 		$spec = array('type' => 'int',
+ 					'size' => 'small',	
+ 					'unsigned' => TRUE,	
+ 					'not null' => TRUE,	
+ 					'default' => 1,	
+ 					'description' => 'The {metadata}.local field'
+ 			);
+ 		db_add_field('metadata', 'local', $spec);
+ 	} catch (Exception $e) {
+ 		throw new DrupalUpdateException('Aggiornamento fallito: ' . $e->getMessage(), 999, $e);
+ 	}
+ }
+ 
+ /**
+  * Add federation support.
+  */
+ function metadata_update_7013() {
+ 	$transaction = db_transaction();
+ 	
+ 	try {
+ 		$spec = array(
+ 					'pgsql_type' => 'uuid',
+//  				'default_value_function' => "uuid_generate_v4()",
+ 					'not null' => FALSE,
+ 					'description' => 'The {author}.uid_author is unique identifier of author in local and federated system.'
+ 		);
+ 		db_add_field('author', 'uid_author', $spec);
+ 		/*
+ 		 ALTER TABLE "public"."author"
+ADD COLUMN "uid_author" uuid DEFAULT uuid_generate_v4() NOT NULL;
+ 		 */
+ 		db_query('ALTER TABLE {author}
+				  ALTER COLUMN uid_author SET DEFAULT uuid_generate_v4();');
+ 		
+ 		$schema = metadata_schema();
+ 		
+ 		/*
+ 		 	CREATE TABLE "public"."users_uid" (
+				"id_user" int8,
+				"uid" uuid DEFAULT uuid_generate_v4()
+			);
+ 		 */
+ 		db_create_table('users_uid', $schema['users_uid']);
+ 		
+ 		db_query('ALTER TABLE users_uid
+ 				ALTER COLUMN uid SET DEFAULT uuid_generate_v4();');
+ 		
+ 		db_query('CREATE OR REPLACE FUNCTION on_user_created()
+			  RETURNS trigger AS
+			$BODY$BEGIN
+				INSERT INTO users_uid (id_user) VALUES (NEW.uid);
+			
+				RETURN NULL;
+			END;$BODY$
+			  LANGUAGE \'plpgsql\' VOLATILE
+			  COST 100;');
+ 		
+ 		db_query('CREATE OR REPLACE FUNCTION on_user_deleted()
+			  RETURNS trigger AS
+			$BODY$BEGIN 
+				DELETE FROM users_uid WHERE id_user=OLD.uid;
+				
+				RETURN NULL;
+			END;$BODY$
+			  LANGUAGE \'plpgsql\' VOLATILE
+			  COST 100;');
+ 		
+ 		db_query('CREATE TRIGGER trigger_user_insert AFTER INSERT ON users
+			FOR EACH ROW
+			EXECUTE PROCEDURE on_user_created()');
+ 		
+ 		db_query('CREATE TRIGGER trigger_user_deleted AFTER DELETE ON users
+			FOR EACH ROW
+			EXECUTE PROCEDURE on_user_deleted()');
+ 		
+ 		db_query('INSERT INTO users_uid (id_user) (SELECT uid FROM users)');
+ 		
+ 		db_query('ALTER TABLE "metadata"
+				ALTER COLUMN "uid" SET DEFAULT uuid_generate_v4();');
+ 		
+ 		db_query('UPDATE metadata SET uid = uuid_generate_v4() WHERE uid IS NULL');
+ 		
+ 	} catch (Exception $e) {
+ 		$transaction->rollback();
+ 		throw new DrupalUpdateException('Aggiornamento fallito: ' . $e->getMessage());
+ 	}
+ }
+ 
+ function _support_update() {
+ 	$transaction = db_transaction();
+ 	
+ 	try {
+ 		/*
+ 		 ALTER TABLE "public"."author"
+ 		ADD COLUMN "uid_author" uuid DEFAULT uuid_generate_v4() NOT NULL;
+ 		*/
+ 		db_query('ALTER TABLE {author}
+ 				ALTER COLUMN uid_author SET DEFAULT uuid_generate_v4();');
+ 	
+ 		 	
+ 		db_query('ALTER TABLE users_uid
+ 				ALTER COLUMN uid SET DEFAULT uuid_generate_v4();');
+ 	
+ 		db_query('CREATE OR REPLACE FUNCTION on_user_created()
+ 				RETURNS trigger AS
+ 				$BODY$BEGIN
+ 				INSERT INTO users_uid (id_user) VALUES (NEW.uid);
+ 	
+ 				RETURN NULL;
+ 				END;$BODY$
+ 				LANGUAGE \'plpgsql\' VOLATILE
+ 				COST 100;');
+ 	
+ 		db_query('CREATE OR REPLACE FUNCTION on_user_deleted()
+ 				RETURNS trigger AS
+ 				$BODY$BEGIN
+ 				DELETE FROM users_uid WHERE id_user=OLD.uid;
+ 	
+ 				RETURN NULL;
+ 				END;$BODY$
+ 				LANGUAGE \'plpgsql\' VOLATILE
+ 				COST 100;');
+ 	
+ 		db_query('CREATE TRIGGER trigger_user_insert AFTER INSERT ON users
+ 				FOR EACH ROW
+ 				EXECUTE PROCEDURE on_user_created()');
+ 	
+ 		db_query('CREATE TRIGGER trigger_user_deleted AFTER DELETE ON users
+ 				FOR EACH ROW
+ 				EXECUTE PROCEDURE on_user_deleted()');
+ 	
+ 		db_query('INSERT INTO users_uid (id_user) (SELECT uid FROM users)');
+ 	
+ 		db_query('ALTER TABLE "metadata"
+ 				ALTER COLUMN "uid" SET DEFAULT uuid_generate_v4();');
+ 	
+ 		db_query('UPDATE metadata SET uid = uuid_generate_v4() WHERE uid IS NULL');
+ 	
+ 	} catch (Exception $e) {
+ 		$transaction->rollback();
+ 	}
+ }
+ 
+ /**
+  * Add federation support.
+  */
+ function metadata_update_7014() {
+ 	try {
+ 		global $base_url;
+ 		$transaction = db_transaction();
+ 		
+ 		$schema = metadata_schema();
+ 		db_create_table('federation', $schema['federation']);
+ 		
+ 		$name = variable_get('site_name', 'undefined');
+ 		$row = new stdClass();
+ 		$row->tid = -1;
+ 		$row->uid = '"uuid_generate_v4"()';
+ 		$row->name = variable_get('site_name', 'undefined');
+ 		$row->url = $base_url;
+ 		$row->local = 1;
+ 		
+ 		// questa mi serve perchè non ho trovato un modo migliore per impostare 
+ 		// il valore del field uid con uuid_generate_v4()
+ 		$subquery = db_select("{variable}", 'a')->range(0,1);
+ 		$subquery->addExpression("-1", 'tid');
+ 		$subquery->addExpression("'$name'", 'name');
+ 		$subquery->addExpression("\"uuid_generate_v4\"()", 'uid');
+ 		$subquery->addExpression("'$base_url'", 'url');
+ 		$subquery->addExpression("1", 'local');
+ 		
+ 		// insert system configuration
+ 		$id = db_insert('federation')
+ 			->fields(array('tid', 'name', 'uid', 'url', 'local'))
+ 			->from($subquery)
+ 			->execute();
+ 		
+ 		if(is_null($id)) {
+ 			throw new Exception('Errore scrivendo la configurazione');
+ 		}
+ 		
+ 	} catch (Exception $e) {
+ 		$transaction->rollback();
+ 		throw new DrupalUpdateException('Aggiornamento fallito: ' . $e->getMessage(), 999, $e);
+ 	}
+ }
+ 
+ /**
+  * Add unique contraints.
+  * @throws DrupalUpdateException
+  */
+ function metadata_update_7015() {
+ 	$transaction = db_transaction();
+ 	try {
+ 		db_query('ALTER TABLE metadata
+				ADD CONSTRAINT "metadata_uid_ukey" UNIQUE ("uid")');
+ 		
+ 		db_query('ALTER TABLE "author"
+				ADD CONSTRAINT "author_uid_ukey" UNIQUE ("uid_author")');
+ 		
+ 		db_query('ALTER TABLE "users_uid"
+				ADD CONSTRAINT "users_uid_uid_ukey" UNIQUE ("uid"),
+				ADD CONSTRAINT "users_uid_id_user_ukey" UNIQUE ("id_user")');
+ 		
+ 		db_query('ALTER TABLE "attach"
+			DROP CONSTRAINT "fk_metadata_fid_file_managed";');
+ 		
+ 		db_query('ALTER TABLE "public"."data_md"
+			ADD CONSTRAINT "fk_attach_data_md" FOREIGN KEY ("id_attach") REFERENCES "public"."attach" ("id");');
+ 		
+ 		db_query('ALTER TABLE "public"."data_raw"
+ 				ADD CONSTRAINT "fk_attach_data_raw" FOREIGN KEY ("id_attach") REFERENCES "public"."attach" ("id");');
+ 		
+ 		db_query('ALTER TABLE "public"."application"
+ 				ADD CONSTRAINT "fk_attach_application" FOREIGN KEY ("id_attach") REFERENCES "public"."attach" ("id");');
+ 		
+ 		db_query('ALTER TABLE "public"."report"
+ 				ADD CONSTRAINT "fk_attach_report" FOREIGN KEY ("id_attach") REFERENCES "public"."attach" ("id");');
+ 	} catch (Exception $e) {
+ 		$transaction->rollback();
+ 		throw new DrupalUpdateException('Aggiornamento fallito: ' . $e->getMessage(), 999, $e);
+ 	}
+ }
+
+ /**
+  * Update Format Taxonomy Vocabulary.
+  * 
+  * @throws DrupalUpdateException
+  */
+ function metadata_update_7016() {
+	$prefix = 'old_';
+ 	// get configuration
+ 	$terms = get_metadata_term();
+ 	$vid = variable_get('metadata_lu_format', 0);
+ 	// complete old vocabulary terms
+ 	$format_tree = taxonomy_get_tree($vid);
+ 	$transaction = db_transaction();
+ 	
+ 	try {
+	 	// add prefix to old terms
+	 	foreach($format_tree as $term) {
+	 		$term->name = $prefix . $term->name;
+	 		taxonomy_term_save($term);
+	 	}
+	 	
+	 	// get vocabulary
+	 	$voc_lu_format = taxonomy_vocabulary_load($vid);
+		// add new terms
+		_add_terms_recursive($terms[$voc_lu_format->machine_name], $voc_lu_format );
+	 	
+	 	// taxonomy terms mapping old->new	
+	 	$mapping = array($prefix.'Dati' => array(taxonomy_get_term_by_name('Dato', 'metadata_lu_format'),),
+	 					 $prefix.'Alfanumerici' => array( 
+	 												taxonomy_get_term_by_name('Tabellare', 'metadata_lu_format')),
+	 					 $prefix.'Geografici' => array(  
+	 					 						taxonomy_get_term_by_name('Cartografico', 'metadata_lu_format')),
+	 					 $prefix.'CSV' => array( taxonomy_get_term_by_name('File', 'metadata_lu_format'), 
+	 					 						taxonomy_get_term_by_name('CSV', 'metadata_lu_format')),
+	 					 $prefix.'PDF' => array( taxonomy_get_term_by_name('File', 'metadata_lu_format'), 
+	 					 						taxonomy_get_term_by_name('PDF', 'metadata_lu_format')),
+	 					 $prefix.'XLS' => array( taxonomy_get_term_by_name('File', 'metadata_lu_format'), 
+	 					 						taxonomy_get_term_by_name('XLS', 'metadata_lu_format')),
+	 					 $prefix.'Image' => array( taxonomy_get_term_by_name('File', 'metadata_lu_format'), 
+	 					 						taxonomy_get_term_by_name('Image', 'metadata_lu_format')));
+	 	
+	// 	scorro i termini, 
+	 	foreach($format_tree as $term) {
+	//  	se è definito un mapping
+			if(isset($mapping[$term->name])) {
+				foreach ($mapping[$term->name] as $new_term) {
+					$t = array_values($new_term);
+					// query per aggiornamento taxonomy_index:
+					db_update('{taxonomy_index}')
+						->condition('tid', $term->tid, '=')
+						->fields(array('tid' => $t[0]->tid ))
+						->execute();
+						
+					// query per aggiornamento di field_data_metadata_format 
+					db_update('{field_data_metadata_format}')
+						->condition('metadata_format_tid', $term->tid, '=')
+						->fields(array('metadata_format_tid' => $t[0]->tid ))
+						->execute();
+					
+					//	seleziono tutte le schede associate al termine
+					//$nids =  taxonomy_select_nodes($new_obj_term->tid);
+					//	aggiungo il tid del nuovo termine alla scheda
+					
+				}
+	
+			}
+	 	}
+	 	
+	 	// delete all vocabulary old terms
+	 	foreach($format_tree as $term) {
+			if($term->name==$prefix.'Dati' || 
+				$term->name==$prefix.'Non Definito' ||
+				$term->name==$prefix.'Oggetti' ||
+				$term->name==$prefix.'Non Definito'  ) {
+	 			taxonomy_term_delete($term->tid);
+			} 	
+	 	}
+	}
+	catch (Exception $e) {
+		$transaction->rollback();
+	 	throw new DrupalUpdateException('Aggiornamento fallito: ' . $e->getMessage(), 999, $e);
+	}
+ }
+ 
+ /**
+  * Update Format Taxonomy Vocabulary.
+  */
+ function metadata_update_7017() {
+ 	variable_set('metadata_format_geographic', 'Cartografico');
+ 	variable_set('metadata_format_alphanumeric', 'Tabellare');
+ 	variable_set('metadata_format_data', 'Dato');
+ 	variable_set('metadata_format_file', 'File');
+ 	variable_set('metadata_format_application', 'Applicazione');
+ }
+ 
+ /**
+  * Update ETL config.
+  * @throws DrupalUpdateException
+  */
+ function metadata_update_7018() {
+ 	try {
+ 		$transaction = db_transaction();
+ 		
+ 		db_query("DROP TABLE IF EXISTS etl_dimension_config;");
+ 		db_query("CREATE TABLE etl_dimension_config (
+ 			infered_dimension varchar(200) NOT NULL,
+ 			id_hier_node int4 NOT NULL,
+ 			name varchar(200) NOT NULL
+ 			)
+ 			WITH (OIDS=FALSE);");
+ 	
+		db_insert('etl_dimension_config')
+			->fields(array('infered_dimension', 'id_hier_node', 'name'))
+			->values(array('COUNTRY', '1515', 'Paesi'))
+			->values(array('PROVINCE', '53532', 'Provincia'))
+			->values(array('YEAR', '79894', 'Anno'))
+			->values(array('CITY', '277147', 'Comune'))
+			->values(array('REGION', '838164', 'Regione'))
+			->execute();
+
+	  	db_query('ALTER TABLE "etl_dimension_config" ADD PRIMARY KEY ("id_hier_node");');
+ 	
+ 	}
+ 	catch (Exception $e) {
+ 		if(isset($transaction))
+ 			$transaction->rollback();
+ 		
+ 		throw new DrupalUpdateException('Aggiornamento fallito: ' . $e->getMessage(), 999, $e);
+ 	}
+ }
+ 
+ function metadata_update_7019() {
+ 	try {
+ 		$transaction = db_transaction();
+ 		
+ 		$query = db_select('metadata', 'm' )
+ 			->fields('m', array('nid', 'uid'));
+ 		$query->innerJoin('attach', 'a', '%alias.id_metadata = m.nid');
+ 		$query->addExpression('upper(a.file_format)', 'file_format');
+ 		
+ 		$result = $query->execute()->fetchAll();
+ 		
+ 		// load File term and your children
+ 		$vid = variable_get('metadata_lu_format', null);
+ 		$voc = taxonomy_vocabulary_load($vid);
+ 		$file_taxonomy_term = taxonomy_get_term_by_name(variable_get('metadata_fileformat_file', 'File'), $voc->machine_name);
+ 		$file_taxonomy_children = array(); 
+ 		if(count($file_taxonomy_term)==1) {
+ 			$file_taxonomy_term = array_values($file_taxonomy_term);
+ 			$temp_children = taxonomy_get_children($file_taxonomy_term[0]->tid);
+ 			
+ 			foreach ($temp_children as $tid => $term_obj) {
+ 				$file_taxonomy_children[$term_obj->name] = $tid;
+ 			}
+ 		}
+ 		else {
+ 			throw new Exception('Format file term not found');
+ 		}
+ 		// fetch all metadata
+ 		foreach ($result as $row) {
+ 			
+ 			$node = metadata_load(array(node_load($row->nid)));
+ 			$node = $node[0];
+ 			 				
+ 			$node_current_tid = array();
+ 			foreach ($node->metadata_format['und'] as $key => $value) {
+ 				$node_current_tid[] = $value['tid'];
+ 			}
+ 			// se il termine relativo al formato esiste e il nodo non ha ancora associato tale termine
+ 			if(isset($file_taxonomy_children[$row->file_format]) &&
+ 				!in_array($file_taxonomy_children[$row->file_format], $node_current_tid)) {
+ 				
+ 				db_query('SELECT "AddTaxonomyTermsToMetadata"(
+ 						\''.$row->uid.'\'::uuid, 
+ 						\''.$voc->machine_name.'\', 
+ 						ARRAY[\'File\', \''.$row->file_format.'\']::_text);');
+ 			}
+ 		}
+ 	}
+ 	catch (Exception $e) {
+ 		if(isset($transaction))
+ 			$transaction->rollback();
+ 	
+ 		throw new DrupalUpdateException('Aggiornamento fallito: ' . $e->getMessage(), 999, $e);
+ 	}
+ }
+ /**
+  * Update aliases.
+  * @throws DrupalUpdateException
+  */
+ function metadata_update_7020() {
+ 	try {
+ 		$transaction = db_transaction();
+ 		$stored_procedure = 
+ 		'CREATE OR REPLACE FUNCTION create_taxonomy_aliases()
+		  RETURNS void AS
+		$BODY$
+		DECLARE
+		    -- declarations
+			base_alias TEXT := \'catalogo-opendata/\';
+		BEGIN
+		-- Eseguire al variare delle tassonomie e degli autori
+		
+		-- cancellare i vecchi alias
+		delete  from url_alias where "source" like \'catalog//term=%\';
+		delete  from url_alias where "source" like \'catalog//authors=%\';
+		 
+		-- inserire quelli nuovi
+		insert into url_alias ("source", "alias", "language" )
+			SELECT replace("source", \'taxonomy/term/\', \'catalog//term=\'), "alias", "language"
+			FROM url_alias
+			WHERE "source" LIKE \'taxonomy/term/%\';
+		
+		insert into url_alias ("source", "alias", "language" )
+			select   \'catalog//authors=\' || id "source", base_alias || replace(replace(replace(replace(replace(website, \'http://\',\'\'),\'www.\',\'\'),\'.it\',\'\'),\'/\',\'\'),\'.\',\'-\') "alias", \'und\' "language" 
+			from author
+			where website is not null;
+		 
+		END;
+		$BODY$
+		  LANGUAGE \'plpgsql\' VOLATILE
+		  COST 100;
+		ALTER FUNCTION create_taxonomy_aliases() OWNER TO gisuser;';
+ 		// update stored procedure
+ 		db_query($stored_procedure);
+ 		// update url aliases
+ 		db_query('SELECT * FROM create_taxonomy_aliases();');
+ 		
+ 		db_query('UPDATE url_alias
+	 		SET "alias" = \'open\' || "alias"
+	 		where "source" like \'node/%\' and "alias" like \'data/%\'');
+ 		
+ 		db_query("update metadata set identifier = replace(identifier, 'data/', 'opendata/')");
+ 	}
+ 	catch (Exception $e) {
+ 		if(isset($transaction))
+ 			$transaction->rollback();
+ 			
+ 		throw new DrupalUpdateException('Aggiornamento fallito: ' . $e->getMessage(), 999, $e);
+ 	}
+ }
+ 
+ /**
+  * Update 7021: change most active author.
+  */
+ function metadata_update_7021() {
+ 	try {
+ 		db_query('CREATE OR REPLACE VIEW metadata_most_active_author AS
+ 				SELECT a.id, count(*) AS tot 
+ 				FROM metadata m INNER JOIN author a ON m.id_author = a.id
+ 				WHERE m.status=1 AND m.visibility=1 AND a.status=1 
+ 				GROUP BY a.id ORDER BY count(*) DESC;');
+ 		
+ 		db_query("CREATE OR REPLACE VIEW view_metadata_count_by_taxonomy_term AS
+ 				(SELECT 'taxonomy' AS type, taxonomy_index.tid, count(*) AS count 
+ 				 FROM metadata m INNER JOIN taxonomy_index taxonomy_index ON m.nid = taxonomy_index.nid 
+ 				 WHERE m.status = 1 AND m.visibility = 1 
+ 				 GROUP BY taxonomy_index.tid 
+ 				 UNION 
+ 				 SELECT 'author' AS type, a.id AS tid, count(*) AS count 
+ 				 FROM metadata m INNER JOIN author a ON m.id_author = a.id 
+ 				 WHERE m.status = 1 AND m.visibility = 1 
+ 				 GROUP BY a.id);");
+ 		
+ 	} catch (Exception $e) {
+		throw new DrupalUpdateException('Errore durante l\' aggiornamento del modulo Metadata'); 	
+ 	}
+ }

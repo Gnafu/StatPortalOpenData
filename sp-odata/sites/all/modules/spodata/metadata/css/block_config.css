@@ -1,0 +1,15 @@
+@CHARSET "ISO-8859-1";
+
+div.config-item {
+clear: both;
+width: 1000px;
+border: 1px solid gray;
+height: 66px;
+padding-left: 10px;
+border-image: initial;
+}
+
+div.config-item > div {
+float: left;
+margin-right: 15px;
+}
